@@ -77,18 +77,19 @@ while True:
     # Sensor temperature in degrees Celsius:
     #temp_c = bno.read_temp()
     # Magnetometer data (in micro-Teslas):
-    #x,y,z = bno.read_magnetometer()
+    mx,my,mz = bno.read_magnetometer()
     # Gyroscope data (in degrees per second):
-    #x,y,z = bno.read_gyroscope()
+    Gx,Gy,Gz = bno.read_gyroscope()
     # Accelerometer data (in meters per second squared):
-    #x,y,z = bno.read_accelerometer()
+    ax,ay,az = bno.read_accelerometer()
     # Linear acceleration data (i.e. acceleration from movement, not gravity--
     # returned in meters per second squared):
-    #x,y,z = bno.read_linear_acceleration()
+    # x,y,z = bno.read_linear_acceleration()
     # Gravity acceleration data (i.e. acceleration just from gravity--returned
     # in meters per second squared):
     #x,y,z = bno.read_gravity()
     # Sleep for a second until the next reading.
+    print ("magx=",mx,"magy="my,"magz=",mz,"Gyx=",Gx,"Gyy=",Gy,"Gyz=",Gz,"accelx=",ax,"accely=",ay,"accelz=",az) 
     time.sleep(1)
     
     #参考https://qiita.com/kmaepu/items/779ab8e45bfe96230224
