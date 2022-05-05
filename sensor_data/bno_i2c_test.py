@@ -90,3 +90,5 @@ while True:
     #x,y,z = bno.read_gravity()
     # Sleep for a second until the next reading.
     time.sleep(1)
+    
+    #参考https://qiita.com/kmaepu/items/779ab8e45bfe96230224
