@@ -1,17 +1,31 @@
 import time
-import serial
+import pigpio
 from micropyGPS import MicropyGPS
 
-def main():
+def main():    
     # シリアル通信設定
-    uart = serial.Serial('/dev/serial0', 9600, timeout = 10)
+    baudrate = 9600
+
+    TX = 24
+    RX = 23
+
+    serialpi = pigpio.pi()
+    serialpi.set_mode(RX,pigpio.INPUT)
+    serialpi.set_mode(TX,pigpio.OUTPUT)
+
+    pigpio.exceptions = False
+    serialpi.bb_serial_read_close(RX)
+    pigpio.exceptions = True
+
+    serialpi.bb_serial_read_open(RX,baudrate,8)
     # gps設定
     my_gps = MicropyGPS(9, 'dd')
 
     # 10秒ごとに表示
     tm_last = 0
+    count = 0
     while True:
-        sentence = uart.readline()
+        (count, sentence) = serialpi.bb_serial_read(RX)
         if len(sentence) > 0:
             for x in sentence:
                 if 10 <= x <= 126:
@@ -26,4 +40,11 @@ def main():
 
 if __name__ == "__main__":
     main()
-    #https://zenn.dev/kotaproj/books/raspberrypi-tips/viewer/370_kiso_gpsからとってきたので，その通りにやればうまくいく？
+"""
+参考
+https://www.rs-online.com/designspark/raspberry-pi-2nd-uart-a-k-a-bit-banging-a-k-a-software-serial
+https://raspberrypi.stackexchange.com/questions/62578/software-serial-send-with-pigpio-sending-garbage
+https://abyz.me.uk/rpi/pigpio/
+https://abyz.me.uk/rpi/pigpio/download.html
+https://zenn.dev/kotaproj/books/raspberrypi-tips/viewer/370_kiso_gps
+"""
