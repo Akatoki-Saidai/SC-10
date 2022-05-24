@@ -155,8 +155,6 @@ def analysis_blob(binary_img):
 
         if(radius < 100):
 
-            while True:
-
                  GPIO.output(12,1)
 
                  GPIO.output(33,1)
