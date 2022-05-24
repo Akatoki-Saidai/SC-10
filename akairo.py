@@ -62,7 +62,7 @@ def analysis_blob(binary_img):
 
     n = label[0] - 1
 
-    global data
+    global data #変数をローカルスコープの外でも使いたくて、global宣言してます
 
     data = np.delete(label[2], 0, 0)
 
@@ -71,7 +71,7 @@ def analysis_blob(binary_img):
 
 
     # ブロブ面積最大のインデックス
-    global max_index
+    global max_index#上と同様です
 
     max_index = np.argmax(data[:, 4])
 
@@ -101,69 +101,70 @@ def analysis_blob(binary_img):
 
 
 
-    def main():
+def main():
 
-        videofile_path ="C:/github/sample/python/opencv/video/color_tracking/red_pendulum.mp4"
+    videofile_path ="C:/github/sample/python/opencv/video/color_tracking/red_pendulum.mp4"
 
 
 
     # カメラのキャプチャ
 
-        camera = cv2.VideoCapture(0)
+    camera = cv2.VideoCapture(0)
 
 
 
-        while(camera.isOpened()):
+    while(camera.isOpened()):
 
-        # フレームを取得
+    # フレームを取得
 
-            ret, frame = camera.read()
-
-
-
-        # 赤色検出
-
-            mask = red_detect(frame)
+        ret, frame = camera.read()
 
 
 
-        # マスク画像をブロブ解析（面積最大のブロブ情報を取得）
+    # 赤色検出
 
-            target = analysis_blob(mask)
+        mask = red_detect(frame)
 
 
+    # マスク画像をブロブ解析（面積最大のブロブ情報を取得）
 
-        # 面積最大ブロブの中心座標を取得
-            center_x = int(target["center"][0])
-            center_y = int(target["center"][1])
-            radius = ((data[:,4][max_index]) % 1000)
-
-                      # フレームに面積最大ブロブの中心周囲を円で描く
-
-            cv2.circle(frame, (center_x, center_y), radius, (0, 200, 0),
-
-                       thickness=3, lineType=cv2.LINE_AA)
+        target = analysis_blob(mask)
 
 
 
-        # 結果表示
+    # 面積最大ブロブの中心座標を取得
+        center_x = int(target["center"][0])
+        center_y = int(target["center"][1])
+        """
+        radiusは整数値じゃないといけないみたいなので、仮として、受け取った面積の割る1000し、切り捨てした値にしてみました。
+        うまく動かない原因はここではないかと思ってます
+     　 """
+        radius = ((data[:,4][max_index]) // 1000)
 
-            cv2.imshow("Frame", frame)
+     # フレームに面積最大ブロブの中心周囲を円で描く
+        cv2.circle(frame, (center_x, center_y), radius, (0, 200, 0)
+                  thickness=3, lineType=cv2.LINE_AA)
 
-            cv2.imshow("Mask", mask)
 
 
-        if(radius < 100):
+     # 結果表示
 
-            GPIO.output(12,1)
+         cv2.imshow("Frame", frame)
 
-            GPIO.output(33,1)
+         cv2.imshow("Mask", mask)
 
-        if(radius > 100):
+#radiusの値をいろいろ試して、ちょうどいいところを見つけたいと思います。そして、モーターの制御は今は簡易的に書いています。
+         if(radius < 100):
 
-            GPIO.output(12,0)
+             GPIO.output(12,1)
 
-            GPIO.output(33,0)
+             GPIO.output(33,1)
+
+         if(radius > 100):
+
+             GPIO.output(12,0)
+
+             GPIO.output(33,0)
 
 GPIO.cleanup()
         # qキーが押されたら途中終了
