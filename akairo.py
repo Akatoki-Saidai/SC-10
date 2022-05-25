@@ -175,7 +175,3 @@ GPIO.cleanup()
         cap.release()
         cv2.destroyAllWindows()
 
-        
-
-if __name__ == '__akairo__':
- akairo()
