@@ -165,7 +165,6 @@ def main():
 
              GPIO.output(33,0)
 
-GPIO.cleanup()
         # qキーが押されたら途中終了
 
             if cv2.waitKey(25) & 0xFF == ord('q'):
