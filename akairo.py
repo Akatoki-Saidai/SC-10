@@ -173,4 +173,5 @@ def main():
 
         cap.release()
         cv2.destroyAllWindows()
-
+if__name__ =='__main__':
+    main()
