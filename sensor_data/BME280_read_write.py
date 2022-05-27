@@ -70,7 +70,7 @@ def readData():
     t_p_h = [compensate_T(temp_raw), compensate_P(pres_raw), compensate_H(hum_raw)]
 
 	with open('bme_data.csv','w') as f:
-        writer = csv.writer(f)
+    	writer = csv.writer(f)
     	writer.writerow(t_p_h)
 
 def compensate_P(adc_P):
