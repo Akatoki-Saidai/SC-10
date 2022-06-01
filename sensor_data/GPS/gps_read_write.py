@@ -29,7 +29,7 @@ def main():
     tm_last = 0
     count = 0
     
-    with oprn('gps_data.csv', 'w') as f:#csvファイルへの書き込み(一行目)
+    with open('gps_data.csv', 'w') as f:#csvファイルへの書き込み(一行目)
         writer = csv.writer(f)
         writer.writerow(['latitude', 'longtitude', 'altitude'])
     while True:
@@ -61,9 +61,12 @@ if __name__ == "__main__":
     main()
 """
 参考
+software serial:
 https://www.rs-online.com/designspark/raspberry-pi-2nd-uart-a-k-a-bit-banging-a-k-a-software-serial
 https://raspberrypi.stackexchange.com/questions/62578/software-serial-send-with-pigpio-sending-garbage
+pigpio:
 https://abyz.me.uk/rpi/pigpio/
 https://abyz.me.uk/rpi/pigpio/download.html
+GPS:
 https://zenn.dev/kotaproj/books/raspberrypi-tips/viewer/370_kiso_gps
 """
