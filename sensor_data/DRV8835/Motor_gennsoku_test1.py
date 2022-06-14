@@ -44,6 +44,7 @@ def right_stop():#E=0 P=0?の時
 duty = 100                  #モーターの回転数値[0,100]
 for sec in range(0,20,1):#０．１秒刻みのタイマー
     sec += 1
+    right_forward()
     duty -= 5
     print(duty)
     sleep(1)
