@@ -89,7 +89,7 @@ while True:
     # in meters per second squared):
     #x,y,z = bno.read_gravity()
     # Sleep for a second until the next reading.
-    print ("magx=",mx,"magy="my,"magz=",mz,"Gyx=",Gx,"Gyy=",Gy,"Gyz=",Gz,"accelx=",ax,"accely=",ay,"accelz=",az) 
+    print ("magx=",mx,"magy=",my,"magz=",mz,"Gyx=",Gx,"Gyy=",Gy,"Gyz=",Gz,"accelx=",ax,"accely=",ay,"accelz=",az) 
     time.sleep(1)
     
     #参考https://qiita.com/kmaepu/items/779ab8e45bfe96230224
