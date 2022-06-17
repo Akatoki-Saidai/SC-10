@@ -100,7 +100,7 @@ def analysis_blob(binary_img):
                 maxblob["area"] = data[:, 4][max_index]   # 面積　面積は認識した物体ののピクセル数 / 全体のピクセル数で出ています
                 maxblob["center"] = center[max_index]  # 中心座標
 
-                return maxblob #取得したブロブの面積を返してあげます
+                return maxblob #取得したブロブの情報を返してあげます
 
 def main():
    
