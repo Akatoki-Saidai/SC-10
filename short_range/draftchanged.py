@@ -1,0 +1,175 @@
+import time
+import RPi.GPIO as GPIO
+import cv2
+import numpy as np
+
+
+short_range_checked = False #近距離フェーズに入ったか否か(これを用いて近距離フェーズで一回のみ実行するコードを書く)
+
+
+def reading_ultrasound_distance(sensor):
+    
+    GPIO.setwarnings(False)
+     
+    GPIO.setmode(GPIO.BOARD)
+    TRIG = 11
+    ECHO = 13
+     
+    if sensor == 0:
+        GPIO.setup(TRIG,GPIO.OUT)
+        GPIO.setup(ECHO,GPIO.IN)
+        GPIO.output(TRIG, GPIO.LOW)
+        time.sleep(0.3)
+         
+        GPIO.output(TRIG, True)
+        time.sleep(0.00001)
+        GPIO.output(TRIG, False)
+ 
+        while GPIO.input(ECHO) == 0:
+          signaloff = time.time()
+         
+        while GPIO.input(ECHO) == 1:
+          signalon = time.time()
+ 
+        timepassed = signalon - signaloff
+        ultrasound_distance = timepassed * 17000
+        return ultrasound_distance
+        GPIO.cleanup()
+    else:
+        print ("Incorrect usonic() function varible.")
+
+class UserException(ValueError):
+    pass
+
+
+def red_detect(img):
+    # HSV色空間に変換(ここでは、取得した映像を処理するために、RGBからHSVに変更するのと、赤色と認識するHSVの値域を設定してます。)
+    hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
+
+    # 赤色のHSVの値域1
+    hsv_min = np.array([0, 127, 0])
+    hsv_max = np.array([30, 255, 255])
+    mask1 = cv2.inRange(hsv, hsv_min, hsv_max) #inRangeは映像を2値化する関数です
+
+    # 赤色のHSVの値域2
+    hsv_min = np.array([150, 127, 0])
+    hsv_max = np.array([179, 255, 255])
+    mask2 = cv2.inRange(hsv, hsv_min, hsv_max)
+
+    return mask1 + mask2
+
+# ブロブ解析
+
+def analysis_blob(binary_img):
+    #違うメソッドで、変数を使いたいので、グローバルにしてます。
+    global label
+    global data
+    global max_index
+    global center
+    # 2値画像のラベリング処理(ラベリング処理は、認識した物体の輪郭を番号づけする処理です。することで物体の形を認識できます)
+    #connectedComponentsWithStatsはオブジェクトのサイズや重心などの情報も合わせて返してくれる関数です。
+    label = cv2.connectedComponentsWithStats(binary_img)
+
+    # ブロブ情報を項目別に抽出
+    n = label[0] - 1
+    data = np.delete(label[2], 0, 0)
+    center = np.delete(label[3], 0, 0)
+
+    # 配列の次元数を取得
+    dimensions = data.shape
+
+    # dimensionsが空ではない
+    if dimensions:
+        # 2次元以上であること。※data[:,4]（物体の面積が入れらえれている4番目の列）より2次元目のindex=4を参照しているため。2次元以上じゃないと、面s根気が取得できません
+        if len(dimensions) >= 2:
+            # 2次元目の要素数を確認
+            dim2nd = dimensions[1]
+            # 2次元目の要素数5以上ならdata[:,4]の2次元目のindex=4の条件を満たす
+            if dim2nd >= 5:
+                # ブロブ面積最大のインデックス
+                max_index = np.argmax(data[:, 4])
+
+                # 面積最大ブロブの情報格納用
+                maxblob = {}
+
+                # 面積最大ブロブの各種情報を取得
+                maxblob["upper_left"] = (data[:, 0][max_index],
+                                         data[:, 1][max_index])  # 左上を(0,0)とした座標
+                maxblob["width"] = data[:, 2][max_index]  # 幅
+                maxblob["height"] = data[:, 3][max_index]  # 高さ
+                maxblob["area"] = data[:, 4][max_index]   # 面積　面積は認識した物体ののピクセル数 / 全体のピクセル数で出ています
+                maxblob["center"] = center[max_index]  # 中心座標
+
+                return maxblob #取得したブロブの面積を返してあげます
+
+def main():
+   
+    # カメラのキャプチャ
+    cap = cv2.VideoCapture(0)
+
+    while(cap.isOpened()):
+        # フレームを取得
+        ret, frame = cap.read() #capに入れられた、カメラの映像を読み込みます
+
+        # 赤色検出
+        mask = red_detect(frame) #赤色検出のメソッドに読み込んだカメラの映像のデータを入れます
+
+        #物体が検出されないと、次元数が2未満になり、ValueErrorが起きるので、起きたらフレームを飛ばしてます
+        try:
+
+            # マスク画像をブロブ解析（面積最大のブロブ情報を取得）
+            target = analysis_blob(mask)
+
+            # 面積最大ブロブの中心座標を取得
+            center_x = int(target["center"][0])
+            center_y = int(target["center"][1])
+
+            # フレームに面積最大ブロブの中心周囲に円を描く
+            cv2.circle(frame, (center_x, center_y), 50, (0, 200, 0),
+                       thickness=3, lineType=cv2.LINE_AA)
+
+            
+            print("menseki",data[:, 4][max_index])
+            print(center[max_index][0])
+            # window表示
+            cv2.imshow("Frame", frame)
+            cv2.imshow("Mask", mask)
+        
+        except ValueError:
+            continue
+
+
+        # qキーが押されたら途中終了
+        if cv2.waitKey(25) & 0xFF == ord('q'):
+            break
+
+    cap.release()
+    cv2.destroyAllWindows()
+
+while True:
+    #近距離フェーズ
+    if reading_ultrasound_distance(0) < 450 and reading_ultrasound_distance(0) != 0: #または画像認識の可能な距離に入る(gps_distance < x)
+
+        """
+        実機が完成してきて、実際に走る際に取得できる面積や座標の値がわかってきたら、モーターの制御を加えたいと思ってます。
+        実際に走る際にへこみとかで、機体の動作がずれて、カメラが物体を認識できなくなっても、１～４０くらいの範囲で面積が取得されるので、それを条件として、回転して物体を再発見するようにしたいです。
+        会場がどんな感じかはわからないですが、赤い服の人が移ったり、自然にある赤色に反応してしまわないかが懸念点です。
+        """
+        
+
+        #近距離フェーズに入ってから一回のみ実行する
+        if not short_range_checked:
+
+            #一回のみ実行する操作をここに書く
+      
+            if __name__ == '__main__':
+                main()
+            short_range_checked = True
+
+
+        #近距離フェーズで繰り返し行われる操作をここに書く
+
+        if #ゴール条件:
+            #ゴール判定
+
+
