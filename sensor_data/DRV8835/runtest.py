@@ -79,6 +79,11 @@ def back():#後進
   left_back()
     
     
+    
+    
+#↑は全部初期設定と関数の宣言
+    
+    
 #--------ps4コントローラの利用操作---------
 
 
@@ -87,8 +92,8 @@ class MyController(Controller):
     def __init__(self, **kwargs):
         Controller.__init__(self, **kwargs)
 #モーター動かす   
-    def on_triangle_press(self):#前進
-        forward()
+    def on_triangle_press(self):#前進 なぜかdef <ボタン名称>　命令　の形以外を繰り返し処理してくれない
+        forward()   　           #どこにGPS、地磁気のコード書けばいいの？
         
     def on_x_press(self):
         back()
@@ -111,5 +116,8 @@ class MyController(Controller):
         
 controller = MyController(interface="/dev/input/js0", connecting_using_ds4drv=False)
 controller.listen()
-    
+''''
+どうゆう手順で処理されてるかわかんないけどこれでモータは動いた
+どうにかGPSと地磁気も組み込みたい
+''''
     
