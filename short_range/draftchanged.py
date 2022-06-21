@@ -102,7 +102,7 @@ def analysis_blob(binary_img):
 
                 return maxblob #取得したブロブの情報を返してあげます
 
-def main():
+def Image_processing():
    
     # カメラのキャプチャ
     cap = cv2.VideoCapture(0)
@@ -162,8 +162,8 @@ while True:
 
             #一回のみ実行する操作をここに書く
       
-            if __name__ == '__main__':
-                main()
+            Image_processing()
+
             short_range_checked = True
 
 
@@ -171,5 +171,3 @@ while True:
 
         if #ゴール条件:
             #ゴール判定
-
-
