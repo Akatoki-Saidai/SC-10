@@ -1,0 +1,9 @@
+EESchema-DOCLIB  Version 2.0
+#
+$CMP DS1307ZN+T&R
+D Real Time Clock 64x8 Serial I2C RTC
+K
+F https://datasheets.maximintegrated.com/en/ds/DS1307.pdf
+$ENDCMP
+#
+#End Doc Library
