@@ -4,7 +4,11 @@ import time
 
 from Adafruit_BNO055 import BNO055
 
+# csvファイル保存
 import csv
+
+
+ # 日時に関して
 import datetime
 
 bno = BNO055.BNO055(rst=18)
@@ -13,20 +17,24 @@ bno = BNO055.BNO055(rst=18)
 if len(sys.argv) == 2 and sys.argv[1].lower() == '-v':
     logging.basicConfig(level=logging.DEBUG)
 
-#BNO055を初期化し、問題が発生した場合は停止する
+    
+# BNO055を初期化し、問題が発生した場合は停止する
 if not bno.begin():
     raise RuntimeError('Failed to initialize BNO055! Is the sensor connected?')
 
-#システムの状態やセルフテストの結果を表示する
+    
+# システムの状態やセルフテストの結果を表示する
 status, self_test, error = bno.get_system_status()
 print('System status: {0}'.format(status))
 print('Self test result (0x0F is normal): 0x{0:02X}'.format(self_test))
 
-#システムステータスがエラーモードの場合、エラーを表示する
+
+# システムステータスがエラーモードの場合、エラーを表示する
 if status == 0x01:
     print('System error: {0}'.format(error))
     print('See datasheet section 4.3.59 for the meaning.')
 
+    
 # Print BNO055 software revision and other diagnostic data.
 sw, bl, accel, mag, gyro = bno.get_revision()
 print('Software version:   {0}'.format(sw))
@@ -68,12 +76,12 @@ while True:
 recordtime = 'rec_{0:%Y%m%d}'.format(now)
 print("recordtime = %s" % recordtime)
 
-data = ("magx=",mx,"magy="my,"magz=",mz,"Gyx=",Gx,"Gyy=",Gy,"Gyz=",Gz,"accelx=",ax,"accely=",ay,"accelz=",az)
+data = "magx="+str(mx)+"magy="+str(my)+"magz="+str(mz)+"Gyx="+str(Gx)+"Gyy="+str(Gy)+"Gyz="+str(Gz)+"accelx="+str(ax)+"accely="+str(ay)+"accelz="+str(az)
 data = recordtime + "," + data
 data = data.split(',') 
 print("data= %s" % data)
 
-with open('log.csv', 'w') as f:
+with open('log.csv', 'w') as f:   # log.csvのファイルに保存される
     writer = csv.writer(f)
     writer.writerow(data)
 f.close()
