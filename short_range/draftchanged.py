@@ -38,9 +38,6 @@ def reading_ultrasound_distance(sensor):
     else:
         print ("Incorrect usonic() function varible.")
 
-class UserException(ValueError):
-    pass
-
 
 def red_detect(img):
     # HSV色空間に変換(ここでは、取得した映像を処理するために、RGBからHSVに変更するのと、赤色と認識するHSVの値域を設定してます。)
