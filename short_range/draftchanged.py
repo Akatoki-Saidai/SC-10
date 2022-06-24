@@ -107,6 +107,15 @@ def Image_processing():
     # カメラのキャプチャ
     cap = cv2.VideoCapture(0)
 
+    fps = 30
+
+    # 録画する動画のフレームサイズ（webカメラと同じにする）
+    size = (640, 480)
+
+    # 出力する動画ファイルの設定（出力する形式がどれがいいかは後で調べてみます)
+    fourcc = cv2.VideoWriter_fourcc(*'XVID')
+    video = cv2.VideoWriter('CameraLog.avi', fourcc, fps, size)
+
     while(cap.isOpened()):
         # フレームを取得
         ret, frame = cap.read() #capに入れられた、カメラの映像を読み込みます
@@ -134,6 +143,9 @@ def Image_processing():
             # window表示
             cv2.imshow("Frame", frame)
             cv2.imshow("Mask", mask)
+
+            # 動画ファイルの書き込み
+            video.write(frame)
         
         except ValueError:
             continue
