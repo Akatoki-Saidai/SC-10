@@ -153,6 +153,7 @@ def Image_processing():
             break
 
     cap.release()
+    video.release()
     cv2.destroyAllWindows()
 
 while True:
