@@ -43,10 +43,10 @@ def red_detect(img):
     # HSV色空間に変換(ここでは、取得した映像を処理するために、RGBからHSVに変更するのと、赤色と認識するHSVの値域を設定してます。)
     hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
 
-    # 赤色のHSVの値域1
+    # 赤色のHSVの値域1(OpenCVのHSVの範囲は普通の範囲と違うので、ここではOpenCVで赤とされる0～30 150～179が色相としてます）[色相,彩度,明度]
     hsv_min = np.array([0, 127, 0])
     hsv_max = np.array([30, 255, 255])
-    mask1 = cv2.inRange(hsv, hsv_min, hsv_max) #inRangeは映像を2値化する関数です
+    mask1 = cv2.inRange(hsv, hsv_min, hsv_max) #inRangeは映像を2値化する関数です(二値化するのはカラーより情報量が3分の1だからです)
 
     # 赤色のHSVの値域2
     hsv_min = np.array([150, 127, 0])
@@ -55,10 +55,10 @@ def red_detect(img):
 
     return mask1 + mask2
 
-# ブロブ解析
+# ブロブ解析(二値化処理後の画像の中に表示されるものの形状を解析)
 
 def analysis_blob(binary_img):
-    #違うメソッドで、変数を使いたいので、グローバルにしてます。
+    #違う関数で、変数を使いたいので、グローバルにしてます。
     global label
     global data
     global max_index
@@ -77,7 +77,7 @@ def analysis_blob(binary_img):
 
     # dimensionsが空ではない
     if dimensions:
-        # 2次元以上であること。※data[:,4]（物体の面積が入れらえれている4番目の列）より2次元目のindex=4を参照しているため。2次元以上じゃないと、面s根気が取得できません
+        # 2次元以上であること。※data[:,4]（物体の面積が入れらえれている4番目の列）より2次元目のindex=4を参照しているため。2次元以上じゃないと、面積が取得できません
         if len(dimensions) >= 2:
             # 2次元目の要素数を確認
             dim2nd = dimensions[1]
@@ -109,16 +109,16 @@ def Image_processing():
     # 録画する動画のフレームサイズ（webカメラと同じにする）
     size = (640, 480)
 
-    # 出力する動画ファイルの設定（出力する形式がどれがいいかは後で調べてみます)
+    # 出力する動画ファイルの設定（映像を取得して処理するスピードとfpsがかみ合わないと、保存した映像が早送りになってしまうのですが、安いラズパイ用のカメラでは12fpsくらいじゃないと早送りになってしまいました)
     fourcc = cv2.VideoWriter_fourcc(*'XVID')
     video = cv2.VideoWriter('CameraLog.avi', fourcc, fps, size)
 
     while(cap.isOpened()):
         # フレームを取得
-        ret, frame = cap.read() #capに入れられた、カメラの映像を読み込みます
+        ret, frame = cap.read() #capに入れられた、カメラの映像を入れます
 
         # 赤色検出
-        mask = red_detect(frame) #赤色検出のメソッドに読み込んだカメラの映像のデータを入れます
+        mask = red_detect(frame) #赤色検出の関数に読み込んだカメラの映像のデータを入れて処理します
 
         #物体が検出されないと、次元数が2未満になり、ValueErrorが起きるので、起きたらフレームを飛ばしてます
         try:
@@ -147,8 +147,30 @@ def Image_processing():
         except ValueError:
             continue
 
+　　　　    #モーター制御挿入
+        #カメラの映像は横640にしてるので、320付近がカメラの中心です
+        if  270 <= center[max_index][0] and center[max_index][0] < 370:
+            #まっすぐ進み動作(物体が中心近くにいる際)
+            print("まっすぐ")
+        
+        elif data[:, 4][max_index] < 50:
+            #回転動作("赤い物体を検出できなくなった際")
+            pritn("回転")
+        
+        elif center[max_index][0] < 270:
+            #回転する動作(物体がカメラの中心から左にずれている際)
+            print("右回転")
+        
+        elif center[max_index][0] >= 370:
+            #回転する動作（物体がカメラの中心から右にずれている際）
+            print("左回転")
 
-        # qキーが押されたら途中終了
+        elif data[:, 4][max_index] > 80000:
+            #止まる(物体の近くに接近した際)
+            print("止まる")
+　　　　#物体の面積の値によって、モーターのスピードを変化させれたらと思ったのですが、いい感じに変化する式がわからなかったのであきらめました。
+
+        # qキーが押されたら途中終了(何かあった時ように、手動停止)
         if cv2.waitKey(25) & 0xFF == ord('q'):
             break
 
