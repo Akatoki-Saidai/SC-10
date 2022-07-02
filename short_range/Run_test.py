@@ -198,7 +198,7 @@ def main():
 
         #モーター制御挿入
         #カメラの映像は横640にしてるので、320付近がカメラの中心です
-        if  270 <= center[max_index][0] and center[max_index][0] < 370 and  data[:, 4][max_index] <= 80000:
+        if  270 <= center[max_index][0] and center[max_index][0] < 370 and 50 < data[:, 4][max_index] and data[:, 4][max_index] <= 80000:
             #まっすぐ進み動作(物体が中心近くにいる際)
             forward()
         
@@ -206,11 +206,11 @@ def main():
             #回転動作("赤い物体を検出できなくなった際")
             CW()
         
-        elif center[max_index][0] < 270 and data[:, 4][max_index] > 50 and  data[:, 4][max_index] <= 80000:
+        elif center[max_index][0] < 270 and 50 < data[:, 4][max_index] and data[:, 4][max_index] <= 80000:
             #回転する動作(物体がカメラの中心から左にずれている際)
             CCW()
         
-        elif center[max_index][0] >= 370 and data[:, 4][max_index] > 50 and  data[:, 4][max_index] <= 80000:
+        elif center[max_index][0] >= 370 and 50 < data[:, 4][max_index] and data[:, 4][max_index] <= 80000:
             #回転する動作（物体がカメラの中心から右にずれている際）
             CW()
 
