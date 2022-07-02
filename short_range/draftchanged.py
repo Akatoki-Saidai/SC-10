@@ -46,7 +46,7 @@ def red_detect(img):
     # 赤色のHSVの値域1(OpenCVのHSVの範囲は普通の範囲と違うので、ここではOpenCVで赤とされる0～30 150～179が色相としてます）[色相,彩度,明度]
     hsv_min = np.array([0, 127, 0])
     hsv_max = np.array([30, 255, 255])
-    mask1 = cv2.inRange(hsv, hsv_min, hsv_max) #inRangeは映像を2値化する関数です(二値化するのはカラーより情報量が3分の1だからです)
+    mask1 = cv2.inRange(hsv, hsv_min, hsv_max) #inRangeは映像を2値化する関数です(二値化するのはカラーより情報量が3分の1だからです) [多次元配列(画像情報),２値化する条件の下限,２値化する条件の上限]
 
     # 赤色のHSVの値域2
     hsv_min = np.array([150, 127, 0])
