@@ -129,11 +129,11 @@ def main():
         
         elif center[max_index][0] < 270 and data[:, 4][max_index] > 50 and  data[:, 4][max_index] <= 80000:
             #回転する動作(物体がカメラの中心から左にずれている際)
-            print("右回転")
+            print("左回転")
         
         elif center[max_index][0] >= 370 and data[:, 4][max_index] > 50 and  data[:, 4][max_index] <= 80000:
             #回転する動作（物体がカメラの中心から右にずれている際）
-            print("左回転")
+            print("右回転")
 
         elif data[:, 4][max_index] > 80000:
             #止まる(物体の近くに接近した際)
