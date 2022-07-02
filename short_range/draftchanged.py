@@ -40,7 +40,7 @@ def reading_ultrasound_distance(sensor):
 
 
 def red_detect(img):
-    # HSV色空間に変換(ここでは、取得した映像を処理するために、RGBからHSVに変更するのと、赤色と認識するHSVの値域を設定してます。)
+    # HSV色空間に変換(ここでは、取得した映像を処理するために、RGBからHSVに変更するのと、赤色と認識するHSVの値域を設定してます。RGBからHSVにするのは、人間が感じるのと近いからよく使われます)
     hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
 
     # 赤色のHSVの値域1(OpenCVのHSVの範囲は普通の範囲と違うので、ここではOpenCVで赤とされる0～30 150～179が色相としてます）[色相,彩度,明度]
@@ -149,7 +149,7 @@ def Image_processing():
 
 　　　　    #モーター制御挿入
         #カメラの映像は横640にしてるので、320付近がカメラの中心です
-        if  270 <= center[max_index][0] and center[max_index][0] < 370:
+        if  270 <= center[max_index][0] and center[max_index][0] < 370 and 50 < data[:, 4][max_index]  and  data[:, 4][max_index] <= 80000:
             #まっすぐ進み動作(物体が中心近くにいる際)
             print("まっすぐ")
         
@@ -157,11 +157,11 @@ def Image_processing():
             #回転動作("赤い物体を検出できなくなった際")
             pritn("回転")
         
-        elif center[max_index][0] < 270:
+        elif center[max_index][0] < 270 and 50 < data[:, 4][max_index]  and data[:, 4][max_index] <= 80000:
             #回転する動作(物体がカメラの中心から左にずれている際)
             print("右回転")
         
-        elif center[max_index][0] >= 370:
+        elif center[max_index][0] >= 370 and 50 < data[:, 4][max_index] and data[:, 4][max_index] <= 80000:
             #回転する動作（物体がカメラの中心から右にずれている際）
             print("左回転")
 
