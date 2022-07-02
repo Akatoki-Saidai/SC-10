@@ -127,11 +127,11 @@ def main():
             #回転動作("赤い物体を検出できなくなった際")
             print("回転")
         
-        elif center[max_index][0] < 270 and data[:, 4][max_index] > 50 and  50 < data[:, 4][max_index] and data[:, 4][max_index] <= 80000:
+        elif center[max_index][0] < 270 and  50 < data[:, 4][max_index] and data[:, 4][max_index] <= 80000:
             #回転する動作(物体がカメラの中心から左にずれている際)
             print("左回転")
         
-        elif center[max_index][0] >= 370 and data[:, 4][max_index] > 50 and  50 < data[:, 4][max_index] and data[:, 4][max_index] <= 80000:
+        elif center[max_index][0] >= 370 and  50 < data[:, 4][max_index] and data[:, 4][max_index] <= 80000:
             #回転する動作（物体がカメラの中心から右にずれている際）
             print("右回転")
 
