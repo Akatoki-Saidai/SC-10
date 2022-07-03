@@ -1,8 +1,6 @@
-
-#モジュールインポート
-import RPi.GPIO as GPIO
-import time 
-import sys
+from ast import Pass
+import RPi.GPIO as GPIO #GPIO用
+import time
 
 #PIN指定
 AIN1 = 15
@@ -11,72 +9,139 @@ BIN1 = 31
 BIN2 = 33
 
 #GPIOのモード
-GPIO.setmode(GPIO.BOARD)#物理ピン番号でGPIOを指定
-GPIO.setup(AIN1,GPIO.OUT)#←ここでエラーoutがだめ？→Result:out×,,OUT〇
-GPIO.setup(AIN2,GPIO.OUT)
+GPIO.setmode(GPIO.BOARD)    #物理ピン番号でGPIOを指定
+GPIO.setup(AIN1,GPIO.OUT)   #a1ばんピンでGPIO
+GPIO.setup(AIN2,GPIO.OUT)   #a2ばんピンでGPIO(PWM)
+GPIO.setup(BIN1,GPIO.OUT)   #b1ばんピンでGPIO
+GPIO.setup(AIN2,GPIO.OUT)   #b2ばんピンでGPIO(PWM)
 
 #周波数設定
-a1 = GPIO.PWM(AIN1,255)#255Hz
-a2 = GPIO.PWM(AIN2,255)#255Hz
-b1 = GPIO.PWM(BIN1,255)
-b2 = GPIO.PWM(BIN2,255)
+Apwm = GPIO.PWM(AIN2,100)     #a1で100HzPWM
+Bpwm = GPIO.PWM(BIN2,100)     #b1で100HzPWM
 
-#PWM起動
-a1.start(0)#Aenable接続（E）
-a2.start(0)#Aphase接続（P）
-b1.start(0)
-b2.start(0)
-
-duty = 25 #duty比　回転速度変更用変数
-#DDRV8355 = MODE0
-
-#右モータ関数
-def right_forward():#E=1 P=0の時
-    a1.ChangeDutyCycle(duty)
-    a2.ChangeDutyCycle(0)
-
-
-def right_back():#E=1 P=1の時
-    a1.ChangeDutyCycle(0)
-    a2.ChangeDutyCycle(duty)
-
-def right_stop():#E=0 P=0?の時
-    a1.ChangeDutyCycle(0)
-    a2.ChangeDutyCycle(0)
+def forward():                #前進
+    Apwm.start(0)             #右車輪(1,1) 
+    GPIO.output(AIN1,GPIO.HIGH)
+    Apwm.ChangeDutyCycle(75)
+    Bpwm.start(0)             #左車輪(1,1)
+    GPIO.output(BIN1,GPIO.HIGH)
+    Bpwm.ChangeDutyCycle(75)
     
-#左モーター関数
-def left_forward():
-    b1.ChangeDutyCycle(duty)
-    b2.ChangeDutyCycle(0)
+def turn_right():                   #右回転
+    Apwm.start(0)                  #右車輪(1,1)
+    GPIO.output(AIN1,GPIO.HIGH)
+    Apwm.ChangeDutyCycle(75)
+    Bpwm.start(0)                  #左車輪(1,0)
+    GPIO.output(BIN1,GPIO.HIGH)
+    Bpwm.ChangeDutyCycle(0)
+    
+def turn_left():                   #左回転
+    Apwm.start(0)                  #右車輪(1,0)
+    GPIO.output(AIN1,GPIO.HIGH)
+    Apwm.ChangeDutyCycle(0)
+    Bpwm.start(0)                  #左車輪(1,1)
+    GPIO.output(BIN1,GPIO.HIGH)
+    Bpwm.ChangeDutyCycle(75)
 
-def left_back():
-    b1.ChangeDutyCycle(0)
-    b2.ChangeDutyCycle(duty)
+def back():                        #後進
+    Apwm.start(0)                  #右車輪(0,1)
+    GPIO.output(AIN1,GPIO.LOW)
+    Apwm.ChangeDutyCycle(75)
+    Bpwm.start(0)                  #左車輪(0,1)
+    GPIO.output(BIN1,GPIO.LOW)
+    Bpwm.ChangeDutyCycle(75)
+    
+def stop():                        #停止
+    Apwm.start(0)                  #右車輪(0,0)
+    GPIO.output(AIN1,GPIO.LOW)
+    Apwm.ChangeDutyCycle(0)
+    Bpwm.start(0)                  #左車輪(0,0)
+    GPIO.output(BIN1,GPIO.LOW)
+    Bpwm.ChangeDutyCycle(0)
+    
+    
 
-def left_stop():
-    b1.ChangeDutyCycle(0)
-    b2.ChangeDutyCycle(0)
+def stopping():
+    i = 0
+    while(75-i >= 0):
+        Apwm.start(0)                  #右車輪
+        GPIO.output(AIN1,GPIO.HIGH)
+        Apwm.ChangeDutyCycle(75-i)
+        Bpwm.start(0)                  #左車輪
+        GPIO.output(BIN1,GPIO.HIGH)
+        Bpwm.ChangeDutyCycle(75-i)
+        time.sleep(0.5)
+        i = i - 5
+    else:
+        Apwm.stop()
+        Bpwm.stop()
+    
+    
+def def_test():
+    while True:
+        act = input("動作を入力>>>")
+        if act == "f":
+            forward()
+            time.sleep(2)
+            stopping()
+            break
+        elif act =="l":
+            turn_left()
+            time.sleep(2)
+            Apwm.stop()
+            Bpwm.stop()
+        elif act =="r":
+            turn_right()
+            time.sleep(2)
+            Apwm.stop()
+            Bpwm.stop()
+        elif act =="b":
+            back()
+            time.sleep(2)
+            Apwm.stop()
+            Bpwm.stop()        
+        else:
+            print("終了します。")
+            GPIO.cleanup()
 
-while True:
-    x = int(input('kaiten'))#→考え：何回かのデータから平均をとるべき→外れ値の除外目的
+# from pyPS4Controller.controller import Controller
+# def ps4test():
+#     def connect():
+#         print("conect")
+#         pass
+#     def disconnect():
+#         print("disconnect")
+#         pass
+#     class MyController(Controller):
 
-    if 200 < x < 400:#前進
-        right_forward()
-        left_forward()
-    elif 0 < x <= 200:#右回転
-        right_stop()
-        left_forward()
+#     def __init__(self, **kwargs):
+#         Controller.__init__(self, **kwargs) 
+          
+#     def on_triangle_press(self):#前進 
+#         forward()              
+#     def on_x_press(self):   #後進
+#         back()
+#     def on_square_press(self):#右回転
+#         turn_right()       
+#     def on_circle_press(self):#左回転
+#         turn_left()
 
-    elif 400 <= x < 600:#左回転
-        right_forward()
-        left_stop()
-
+#     def on_triangle_release(self):
+#         stop()
+#     def on_x_release(self):
+#         stop()
+#     def on_square_release(self):
+#         stop()
+#     def on_circle_release(self):
+#         stop()
+        
+#     controller = MyController(interface="/dev/input/js0", connecting_using_ds4drv=False)
+#     controller.listen()
+    
 
         
-#時々終了してもストップしないときがある
-
-
-
+        
+        
 
 
 
