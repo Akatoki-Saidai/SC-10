@@ -16,21 +16,21 @@ GPIO.setup(BIN1,GPIO.OUT)   #b1ばんピンでGPIO
 GPIO.setup(AIN2,GPIO.OUT)   #b2ばんピンでGPIO(PWM)
 
 #周波数設定
-Apwm = GPIO.PWM(AIN2,200)     #a1で100HzPWM
-Bpwm = GPIO.PWM(BIN2,200)     #b1で100HzPWM
+Apwm = GPIO.PWM(AIN2,255)     #a1で100HzPWM
+Bpwm = GPIO.PWM(BIN2,255)     #b1で100HzPWM
 
 def forward():                #前進
-    Apwm.start(0)             #右車輪(1,1) 
+    Apwm.start(0)             #右車輪(1,0) 
     GPIO.output(AIN1,GPIO.HIGH)
-    Apwm.ChangeDutyCycle(75)
-    Bpwm.start(0)             #左車輪(1,1)
+    Apwm.ChangeDutyCycle(0)
+    Bpwm.start(0)             #左車輪(1,0)
     GPIO.output(BIN1,GPIO.HIGH)
-    Bpwm.ChangeDutyCycle(75)
+    Bpwm.ChangeDutyCycle(0)
     
 def turn_right():                   #右回転
-    Apwm.start(0)                  #右車輪(1,1)
-    GPIO.output(AIN1,GPIO.HIGH)
-    Apwm.ChangeDutyCycle(75)
+    Apwm.start(0)                  #右車輪(0,1)
+    GPIO.output(AIN1,GPIO.LOW)
+    Apwm.ChangeDutyCycle(100)
     Bpwm.start(0)                  #左車輪(1,0)
     GPIO.output(BIN1,GPIO.HIGH)
     Bpwm.ChangeDutyCycle(0)
@@ -39,9 +39,9 @@ def turn_left():                   #左回転
     Apwm.start(0)                  #右車輪(1,0)
     GPIO.output(AIN1,GPIO.HIGH)
     Apwm.ChangeDutyCycle(0)
-    Bpwm.start(0)                  #左車輪(1,1)
-    GPIO.output(BIN1,GPIO.HIGH)
-    Bpwm.ChangeDutyCycle(75)
+    Bpwm.start(0)                  #左車輪(0,1)
+    GPIO.output(BIN1,GPIO.LOW)
+    Bpwm.ChangeDutyCycle(100)
 
 def back():                        #後進
     Apwm.start(0)                  #右車輪(0,1)
