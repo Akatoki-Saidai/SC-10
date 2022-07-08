@@ -133,6 +133,7 @@ get_calib_param()
 
 
 with open('bme_data.csv','w') as f:
+	writer = csv.writer(f)
 	while True:
 		get_calib_param()
 
@@ -144,9 +145,7 @@ with open('bme_data.csv','w') as f:
 		hum_raw  = (data[6] << 8)  |  data[7]
 		
 		t_p_h = [compensate_T(temp_raw), compensate_P(pres_raw), compensate_H(hum_raw)]
-
 		
-		writer = csv.writer(f)
 		writer.writerow(t_p_h)
 """
 setup():まあsetup。
