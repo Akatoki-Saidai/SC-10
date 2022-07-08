@@ -68,7 +68,6 @@ def def_test():
         if act == "f":
             forward()
             time.sleep(2)
-            stopping()
             break
         elif act =="l":
             turn_left()
