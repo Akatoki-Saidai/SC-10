@@ -1,4 +1,4 @@
-from ast import Pass
+
 import RPi.GPIO as GPIO #GPIO用
 import time
 
@@ -16,8 +16,8 @@ GPIO.setup(BIN1,GPIO.OUT)   #b1ばんピンでGPIO
 GPIO.setup(AIN2,GPIO.OUT)   #b2ばんピンでGPIO(PWM)
 
 #周波数設定
-Apwm = GPIO.PWM(AIN2,100)     #a1で100HzPWM
-Bpwm = GPIO.PWM(BIN2,100)     #b1で100HzPWM
+Apwm = GPIO.PWM(AIN2,200)     #a1で100HzPWM
+Bpwm = GPIO.PWM(BIN2,200)     #b1で100HzPWM
 
 def forward():                #前進
     Apwm.start(0)             #右車輪(1,1) 
@@ -60,21 +60,6 @@ def stop():                        #停止
     Bpwm.ChangeDutyCycle(0)
     
     
-
-def stopping():
-    i = 0
-    while(75-i >= 0):
-        Apwm.start(0)                  #右車輪
-        GPIO.output(AIN1,GPIO.HIGH)
-        Apwm.ChangeDutyCycle(75-i)
-        Bpwm.start(0)                  #左車輪
-        GPIO.output(BIN1,GPIO.HIGH)
-        Bpwm.ChangeDutyCycle(75-i)
-        time.sleep(0.5)
-        i = i - 5
-    else:
-        Apwm.stop()
-        Bpwm.stop()
     
     
 def def_test():
@@ -104,39 +89,35 @@ def def_test():
             print("終了します。")
             GPIO.cleanup()
 
-# from pyPS4Controller.controller import Controller
-# def ps4test():
-#     def connect():
-#         print("conect")
-#         pass
-#     def disconnect():
-#         print("disconnect")
-#         pass
-#     class MyController(Controller):
+from pyPS4Controller.controller import Controller
+class MyController(Controller):
 
-#     def __init__(self, **kwargs):
-#         Controller.__init__(self, **kwargs) 
+    def __init__(self, **kwargs):
+        Controller.__init__(self, **kwargs) 
           
-#     def on_triangle_press(self):#前進 
-#         forward()              
-#     def on_x_press(self):   #後進
-#         back()
-#     def on_square_press(self):#右回転
-#         turn_right()       
-#     def on_circle_press(self):#左回転
-#         turn_left()
+    def on_triangle_press(self):#前進 
+        forward()              
+    def on_x_press(self):   #後進
+        back()
+    def on_square_press(self):#右回転
+        turn_right()       
+    def on_circle_press(self):#左回転
+        turn_left()
 
-#     def on_triangle_release(self):
-#         stop()
-#     def on_x_release(self):
-#         stop()
-#     def on_square_release(self):
-#         stop()
-#     def on_circle_release(self):
-#         stop()
+    def on_triangle_release(self):
+        stop()
+    def on_x_release(self):
+        stop()
+    def on_square_release(self):
+        stop()
+    def on_circle_release(self):
+        stop()
         
-#     controller = MyController(interface="/dev/input/js0", connecting_using_ds4drv=False)
-#     controller.listen()
+    def on_home_press():
+        def_test()
+        
+    controller = MyController(interface="/dev/input/js0", connecting_using_ds4drv=False)
+    controller.listen()
     
 
         
