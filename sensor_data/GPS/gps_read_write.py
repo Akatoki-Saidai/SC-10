@@ -32,23 +32,23 @@ def main():
     with open('gps_data.csv', 'w') as f:#csvファイルへの書き込み(一行目)
         writer = csv.writer(f)
         writer.writerow(['latitude', 'longtitude', 'altitude'])
-    while True:
-        (count, sentence) = serialpi.bb_serial_read(RX)#ここはよくわからん、データが取れてるかどうか調べるところな気がする
-        if len(sentence) > 0:
-            for x in sentence:
-                if 10 <= x <= 126:
-                    stat = my_gps.update(chr(x))
-                    if stat:
-                        tm = my_gps.timestamp
-                        tm_now = (tm[0] * 3600) + (tm[1] * 60) + int(tm[2])
-                        if (tm_now - tm_last) >= 10:
-                            print('=' * 20)
-                            print(my_gps.date_string(), tm[0], tm[1], int(tm[2]))
-                            print("latitude:", my_gps.latitude[0], ", longitude:", my_gps.longitude[0], "altitude:", my_gps.altitude)
-                            with open('gps_data.csv','w') as f:#csvファイルへの書き込み(data)
-                                writer = csv.writer(f)
+    with open('gps_data.csv','w') as f:#csvファイルへの書き込み(data)
+        writer = csv.writer(f)
+        while True:
+            (count, sentence) = serialpi.bb_serial_read(RX)#ここはよくわからん、データが取れてるかどうか調べるところな気がする
+            if len(sentence) > 0:
+                for x in sentence:
+                    if 10 <= x <= 126:
+                        stat = my_gps.update(chr(x))
+                        if stat:
+                            tm = my_gps.timestamp
+                            tm_now = (tm[0] * 3600) + (tm[1] * 60) + int(tm[2])
+                            if (tm_now - tm_last) >= 10:
+                                print('=' * 20)
+                                print(my_gps.date_string(), tm[0], tm[1], int(tm[2]))
+                                print("latitude:", my_gps.latitude[0], ", longitude:", my_gps.longitude[0], "altitude:", my_gps.altitude)    
                                 writer.writerow([my_gps.latitude[0], my_gps.longitude[0], my_gps.altitude])
-                            time.sleep(1)#一秒停止(試しに入れてみただけ)
+                                time.sleep(1)#一秒停止
 """
 tmは時間に関するやつだと思うけどよく知らない。使わなくてもいい可能性がある。
 my_gps.latitude[0]は緯度
