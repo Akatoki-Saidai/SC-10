@@ -84,7 +84,8 @@ with open('log.csv', 'w') as f:   # log.csvのファイルに保存される
 
         writer = csv.writer(f)
         writer.writerow(data)
-
-        f.close()
         print("loggging done. see log.csv")
-#参考https://qiita.com/kmaepu/items/779ab8e45bfe96230224
+        
+    f.close()
+        
+ #参考https://qiita.com/kmaepu/items/779ab8e45bfe96230224
