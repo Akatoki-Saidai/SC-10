@@ -71,7 +71,7 @@ with open('log.csv', 'w') as f:   # log.csvのファイルに保存される
         # in meters per second squared):
         #x,y,z = bno.read_gravity()
         # Sleep for a second until the next reading.
-        print ("magx=",mx,"magy="my,"magz=",mz,"Gyx=",Gx,"Gyy=",Gy,"Gyz=",Gz,"accelx=",ax,"accely=",ay,"accelz=",az) 
+        print ("magx=",mx,"magy=",my,"magz=",mz,"Gyx=",Gx,"Gyy=",Gy,"Gyz=",Gz,"accelx=",ax,"accely=",ay,"accelz=",az) 
         time.sleep(1)
         now = datetime.datetime.now()
         recordtime = 'rec_{0:%Y%m%d}'.format(now)
