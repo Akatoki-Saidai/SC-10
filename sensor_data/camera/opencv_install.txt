@@ -1,0 +1,76 @@
+OpenCV install 
+
+*ネットを参照する際にはできるだけ新しい記事を見る(古いといろいろ変わっているため)
+
+カメラをraspberry pi に繋げたら、コマンドラインを開き
+sudo raspi-config　と入力し、押す
+そして、出てきたものの中の3番目にinterface～　のようなものがあるので開き、
+legacy camera～　が一番上にあるはずなので押して、Yesを押す。
+最初の画面に戻ったらfinishedを押してコマンドラインに戻り、rebootと入力する
+
+次に、これらのものをインストールする
+
+
+$ sudo apt-get install libhdf5-dev libhdf5-serial-dev
+$ sudo apt-get install libqt5gui5 libqt5webkit5 libqt5test5 
+$ sudo apt-get install libatlas-base-dev
+$ sudo apt-get install libjasper-dev
+
+$ sudo pip3 install opencv-python
+これらをそれぞれ入力する。入力した際にエラーが発生したら、たぶん新しいバージョンが出て、今のバージョンが消されたことによるから、"5"のところを6や7に変える(その時によってしか新しいバージョンがどれかはわからないので、自分で調べる)
+
+次に利用できるか確認するためにpython3と入力する
+
+$ python3
+Python 3.7.3 (default, Dec 20 2019, 18:57:59) 
+[GCC 8.3.0] on linux
+Type "help", "copyright", "credits" or "license" for more information.
+>>> import cv2
+Traceback (most recent call last):
+  File "<stdin>", line 1, in <module>
+  File "/home/pi/cv2/__init__.py", line 3, in <module>
+    from .cv2 import *
+ImportError: /home/pi/cv2/cv2.cpython-37m-arm-linux-gnueabihf.so: undefined symbol: __atomic_fetch_add_8
+
+のように出てきたら
+$ LD_PRELOAD=/usr/lib/arm-linux-gnueabihf/libatomic.so.
+を入力、そして
+nano .bashrc を入力し
+
+export LD_PRELOAD=/usr/lib/arm-linux-gnueabihf/libatomic.so.1
+を最後あたりにでも入力しておく。そしてまたpython3を入力し
+$ python3
+Python 3.9.2 (default, Mar 12 2021, 04:06:34) 
+[GCC 10.2.1 20210110] on linux
+Type "help", "copyright", "credits" or "license" for more information.
+と出たらOK。次にimport cv2　と入力する。多分エラーが出て、
+
+>>> import cv2
+RuntimeError: module compiled against API version 0xf but this version of numpy is 0xd
+Traceback (most recent call last):
+  File "<stdin>", line 1, in <module>
+  File "/usr/local/lib/python3.9/dist-packages/cv2/__init__.py", line 8, in <module>
+    from .cv2 import *
+ImportError: numpy.core.multiarray failed to import
+このように表示されると思う。そしたらexit()を入力して、コマンドラインに戻り、PATHをとおすのとnumpyのアップデートを行う。
+
+
+$ sudo nano .bashrc
+
+ファイルが開けたら#
+# ~/.bashrc
+#
+
+# If not running interactively, don't do anything
+[[ $- != *i* ]] && return
+
+# ↓この行を追加
+export PATH="$PATH:$HOME/[ユーザー名].local/bin"  をする
+
+ctrlとOで保存して、ctrlとXで終了する
+
+次にnumpyのアップデートを行う
+
+$sudo pip3 install numpy --upgrade
+
+そのあとはもういちど、python3と入力し、import cv2と入力してもエラーが出なくなっているはず。
