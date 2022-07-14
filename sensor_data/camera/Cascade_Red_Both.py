@@ -5,10 +5,10 @@ cap = cv2.VideoCapture(0)#カメラの映像取得
 
 #赤色検知を行う関数
 def red_detect(img):
-    # HSV色空間に変換(ここでは、取得した映像を処理するために、RGBからHSVに変更するのと、赤色と認識するHSVの値域を設定してます。RGBからHSVにするのは、人間が見る色の感覚とと近いから)
+    # HSV色空間に変換(ここでは、取得した映像を処理するために、RGBからHSVに変更するのと、赤色と認識するHSVの値域を設定している。RGBからHSVにするのは、人間が見る色の感覚とと近いから)
     hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
 
-    # 赤色のHSVの値域1(OpenCVのHSVの範囲は普通の範囲と違うので、ここではOpenCVで赤とされる0～30 150～179が色相としてます）[色相,彩度,明度]
+    # 赤色のHSVの値域1(OpenCVのHSVの範囲は普通の範囲と違うから、ここではOpenCVで赤とされる0～30 150～179が色相としている）[色相,彩度,明度]
     hsv_min = np.array([0, 127, 0])
     hsv_max = np.array([30, 255, 255])
     mask1 = cv2.inRange(hsv, hsv_min, hsv_max)#inRangeは映像を2値化する関数(二値化するのはカラーより情報量が3分の1だから) [多次元配列(画像情報),２値化する条件の下限,２値化する条件の上限]
@@ -109,7 +109,7 @@ def main():
             print(center[max_index][0])
          
             # 結果表示
-            cv2.imshow("Frame", frame)
+            cv2.imshow("Red", frame)
             cv2.imshow("Mask", mask)
 
              # 書き込み
@@ -169,7 +169,7 @@ def recognition():
             
                 色の認識は精度の改善が色の範囲を絞るくらいしかないが、ハードルが低い
                 """
-        cv2.imshow("Camera",frame)
+        cv2.imshow("Cascade",frame)
 
 
         #"w"を押すか、認識できなくなるか、面積が50000を超えると停止(40000未満になれば、また実行される)
