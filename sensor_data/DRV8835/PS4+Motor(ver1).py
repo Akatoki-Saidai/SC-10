@@ -1,10 +1,10 @@
 
 #モジュールインポート
-import RPi.GPIO as GPIO #GPIO用
-import time
+import RPi.GPIO as GPIO #GPIOモジュールインポート
+import time#時間モジュールインポート
 from time import sleep 
 import sys
-from pyPS4Controller.controller import Controller#PS４コントローラ用
+from pyPS4Controller.controller import Controller#PS４コントローラモジュールインポート
 
 #PIN指定
 AIN1 = 15
