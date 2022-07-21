@@ -295,7 +295,8 @@ def Color_processing():
         # qキーが押されたら途中終了
         if cv2.waitKey(25) & 0xFF == ord('q'):
             break
-
+            
+    video.release()
     cap.release()
     cv2.destroyAllWindows()
 
