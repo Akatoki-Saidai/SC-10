@@ -119,5 +119,6 @@ controller.listen()
 ''''
 どうゆう手順で処理されてるかわかんないけどこれでモータは動いた
 どうにかGPSと地磁気も組み込みたい
+参考https://hellobreak.net/raspberry-pi-ps4-controller-0326/
 ''''
     
