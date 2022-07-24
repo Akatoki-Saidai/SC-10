@@ -130,6 +130,9 @@ class MyController(Controller):
     controller = MyController(interface="/dev/input/js0", connecting_using_ds4drv=False)
     controller.listen()
     
+    
+#PS4操作参考https://hellobreak.net/raspberry-pi-ps4-controller-0326/
+    
 
         
         
