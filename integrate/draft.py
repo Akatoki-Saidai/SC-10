@@ -49,7 +49,7 @@ global current_ultra_distance
 
 # 10秒ごとに表示
 tm_last = 0
-count = 0
+cnt = 0
 
 
 
@@ -236,102 +236,12 @@ def analysis_blob(binary_img):
     raise ValueError
 
 
-#赤色認識を行う関数とブロブ解析を行う関数を実行し、結果表示する関数
-def Color_processing():
-    #保存する動画のfps
-    fps = 30
-
-    # 録画する動画のフレームサイズ
-    size = (640, 480)
-
-    # 出力する動画ファイルの設定（映像を取得して処理するスピードとfpsがかみ合わないと、保存した映像が早送りになってしまう。安いラズパイ用のカメラだと12fpsくらいじゃないと動画が早送りになる。)
-    fourcc = cv2.VideoWriter_fourcc(*'XVID')
-    video = cv2.VideoWriter('output.avi', fourcc, fps, size)
-    while(cap.isOpened()):
-        # フレームを取得
-        ret, frame = cap.read()#capに入れられた、カメラの映像のデータを入れる。 retは映像を取得できたかどうかをboolでいれられる
-
-        # 赤色検出(取得できた映像を赤色検出の関数にまわす)
-        mask = red_detect(frame)
-        
-
-        try:
-
-
-            # マスク画像をブロブ解析（面積最大のブロブ情報を取得）
-            target = analysis_blob(mask)
-            #最初にカメラが起動した際、物体の面積が40000未満ならrecognition関数を実行
-            if (data[:, 4][max_index] < 40000): 
-                Image_processing()
-            else:
-                pass
-            # 面積最大ブロブの中心座標を取得
-            center_x = int(target["center"][0])
-            center_y = int(target["center"][1])
-
-            # フレームに面積最大ブロブの中心周囲を円で描く
-            cv2.circle(frame, (center_x, center_y), 50, (0, 200, 0),
-                       thickness=3, lineType=cv2.LINE_AA)
-
-            #面積と座標表示
-            print("menseki",data[:, 4][max_index])
-            print(center[max_index][0])
-         
-            # 結果表示
-            cv2.imshow("Frame", frame)
-            cv2.imshow("Mask", mask)
-
-             # 書き込み
-            video.write(frame)
-        
-        except ValueError:
-            continue
-
-
-        #モーター制御挿入
-        #カメラの映像は横640にしてるので、320付近がカメラの中心です
-
-#---------------------------基本的に変更を加えるところはここ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-        if  270 <= center[max_index][0] and center[max_index][0] < 370 and 50 < data[:, 4][max_index] and data[:, 4][max_index] <= 80000:
-            #まっすぐ進み動作(物体が中心近くにいる際)
-            forward()
-        
-        elif data[:, 4][max_index] <= 50:
-            #回転動作("赤い物体を検出できなくなった際")
-            CW()
-        
-        elif center[max_index][0] < 270 and 50 < data[:, 4][max_index] and data[:, 4][max_index] <= 80000:
-            #回転する動作(物体がカメラの中心から左にずれている際)
-            CCW()
-        
-        elif center[max_index][0] >= 370 and 50 < data[:, 4][max_index] and data[:, 4][max_index] <= 80000:
-            #回転する動作（物体がカメラの中心から右にずれている際）
-            CW()
-
-        elif data[:, 4][max_index] > 80000:
-            #止まる(物体の近くに接近した際)
-            stop()      
-
-#--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-        # qキーが押されたら途中終了
-        if cv2.waitKey(25) & 0xFF == ord('q'):
-            break
-
-    cap.release()
-    video.release()
-    cv2.destroyAllWindows()
-
-
-
-
 with open('control_history.csv', 'w') as f_his, open('data_log.csv','w') as f_data:
     history = csv.writer(f_his)
     CanSat_log_data = csv.writer(f_data)
 
     time_row = my_gps.timestamp
-    data_row = ([time_row[0], time_row[1], time_row[2] my_gps.latitude[0], my_gps.longtitude[0], my_gps.altitude])
+    data_row = [time_row[0], time_row[1], time_row[2], my_gps.latitude[0], my_gps.longtitude[0], my_gps.altitude]
 
     CanSat_log_data.writerow(data_row)#センサーデータをdata_rowに全部格納して保存する
     while True:
@@ -343,7 +253,7 @@ with open('control_history.csv', 'w') as f_his, open('data_log.csv','w') as f_da
 
             long_range_checked = True
 
-        (count, sentence) = serialpi.bb_serial_read(RX)
+        (cnt, sentence) = serialpi.bb_serial_read(RX)
         if len(sentence) > 0:
             for x in sentence:
                 if 10 <= x <= 126:
@@ -378,6 +288,8 @@ with open('control_history.csv', 'w') as f_his, open('data_log.csv','w') as f_da
 
             
             if not short_range_checked:#short rangeで一回のみ行う処理
+                history.writerow('short range')
+
 
                 
                 cap = cv2.VideoCapture(0)
@@ -441,17 +353,17 @@ with open('control_history.csv', 'w') as f_his, open('data_log.csv','w') as f_da
                 
                 elif data[:, 4][max_index] < 50:
                     #回転動作("赤い物体を検出できなくなった際")
-                    CW()
+                    turn_right()
                     history.writerow('searching for the goal')
 
                 elif center[max_index][0] < 270 and 50 < data[:, 4][max_index] and data[:, 4][max_index] <= 80000:
                     #回転する動作(物体がカメラの中心から左にずれている際)
-                    CCW()
+                    turn_left()
                     history.writerow('rotating right')
                 
                 elif center[max_index][0] >= 370 and 50 < data[:, 4][max_index] and data[:, 4][max_index] <= 80000:
                     #回転する動作（物体がカメラの中心から右にずれている際）
-                    CW()
+                    turn_right()
                     history.writerow('rotating left')
 
                 elif data[:, 4][max_index] > 80000:
@@ -470,7 +382,7 @@ with open('control_history.csv', 'w') as f_his, open('data_log.csv','w') as f_da
             cv2.destroyAllWindows()
 
             while True:#距離センサを使ったゴールサーチと判定(仮)
-                CW()#回転し続ける
+                search_count = 0
                 history.writerow('searching for the goal')
                 if MIN_ULTRA_DISTANCE < reading_ultrasound_distance(0) and reading_ultrasound_distance(0) < MAX_ULTRA_DISTANCE:
                     stop()#停止
@@ -480,11 +392,16 @@ with open('control_history.csv', 'w') as f_his, open('data_log.csv','w') as f_da
                         history.writerow('GOAL!')
                         goal = True
                     break
-            
+                else:
+                    turn_left()
+                    search_count += 1
+                    if search_count > 5:
+                        break
+                
             if goal:
                 break
             time_row = my_gps.timestamp
-            data_row = ([time_row[0], time_row[1], time_row[2] my_gps.latitude[0], my_gps.longtitude[0], my_gps.altitude])
+            data_row = [time_row[0], time_row[1], time_row[2], my_gps.latitude[0], my_gps.longtitude[0], my_gps.altitude]
 
             CanSat_log_data.writerow(data_row)#センサーデータをdata_rowに全部格納して保存する
                 
