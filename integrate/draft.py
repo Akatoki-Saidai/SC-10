@@ -55,97 +55,71 @@ count = 0
 
 #-------------モーター関係----------------------------------------------------------
 
-
-
-#PIN指定
 AIN1 = 15
 AIN2 = 29
 BIN1 = 31
 BIN2 = 33
 
 #GPIOのモード
-GPIO.setmode(GPIO.BOARD)#物理ピン番号でGPIOを指定
-GPIO.setup(AIN1,GPIO.OUT)#←ここでエラーoutがだめ？→out×,,OUT〇
-GPIO.setup(AIN2,GPIO.OUT)
+GPIO.setmode(GPIO.BOARD)    #物理ピン番号でGPIOを指定
+GPIO.setup(AIN1,GPIO.OUT)   #AIN1番ピンで
+GPIO.setup(AIN2,GPIO.OUT)   #AIN2ピンで
+GPIO.setup(BIN1,GPIO.OUT)   #BIN1ピンで
+GPIO.setup(AIN2,GPIO.OUT)   #BIN2ピンでGPIO出力設定
+
 #周波数設定
-a1 = GPIO.PWM(AIN1,255)#255Hz
-a2 = GPIO.PWM(AIN2,255)#255Hz
-b1 = GPIO.PWM(BIN1,255)
-b2 = GPIO.PWM(BIN2,255)
-#PWM起動
-a1.start(0)#Aenable接続（E）
-a2.start(0)#Aphase接続（P）
-b1.start(0)
-b2.start(0)
+Apwm = GPIO.PWM(AIN2,255)     #PWM(pin,Hz)→AIN2番ピンで255Hz
+Bpwm = GPIO.PWM(BIN2,255)     #PWM(pin,Hz)→BIN2番ピンで255Hz出力設定
 
-duty = 100 #duty比　回転速度変更用変数
-#DDRV8355 = MODE0 
-#--------------右モータ関数--------------
-def right_forward():#E=1 P=0の時
-    a1.ChangeDutyCycle(duty)
-    a2.ChangeDutyCycle(0)
-
-
-
-def right_back():#E=1 P=1の時
-    a1.ChangeDutyCycle(0)
-    a2.ChangeDutyCycle(duty)
-
-
-
-def right_stop():#E=0 P=0?の時
-    a1.ChangeDutyCycle(0)
-    a2.ChangeDutyCycle(0)
-
-
-
-#----------左モーター関数-----------
-def left_forward():
-    b1.ChangeDutyCycle(duty)
-    b2.ChangeDutyCycle(0)
-
-
-
-def left_back():
-    b1.ChangeDutyCycle(0)
-    b2.ChangeDutyCycle(duty)
-
-
-
-def left_stop():
-    b1.ChangeDutyCycle(0)
-    b2.ChangeDutyCycle(0)
-
-
-
-#-----------動く方向関数---------
-def forward():#前進
-    right_forward()
-    left_forward()
-
-
-
-def CW():#右回転
-    right_back()
-    left_forward()
-
-
-
-def CCW():#左回転
-    right_forward()
-    left_back()
-
-
-
-def stop():#停止
-    right_stop()
-    left_stop()
+def forward():        #前進
+    #右車輪(A1,A2)=(+,0)→正回転
+    Apwm.start(0)               #start(duty比)つまり出力0の状態              
+    GPIO.output(AIN1,GPIO.HIGH) #AIN1を出力(pin,出力を100％) 
+    Apwm.ChangeDutyCycle(0)     #ChangeDutyCycle(duty)→AIN2のduty比０に設定
+    #左車輪(BIN1.BIN2)=(+,0)→正回転
+    Bpwm.start(0)               
+    GPIO.output(BIN1,GPIO.HIGH) #def forward()右車輪と同上
+    Bpwm.ChangeDutyCycle(0)     
     
+def turn_right():    #右回転
+    #右車輪(AIN1,AIN2)=(0,+)→負回転
+    Apwm.start(0)                
+    GPIO.output(AIN1,GPIO.LOW)  #def forward()右車輪と同上
+    Apwm.ChangeDutyCycle(100)   #duty比100％→255Hz（max）出力
+    #左車輪(BIN1.BIN2)=(+,0)→正回転
+    Bpwm.start(0)                
+    GPIO.output(BIN1,GPIO.HIGH) #def forward()右車輪と同上
+    Bpwm.ChangeDutyCycle(0)     
+    
+def turn_left():     #左回転
+    #右車輪(AIN1.AIN2)=(+,0)→正回転
+    Apwm.start(0)               
+    GPIO.output(AIN1,GPIO.HIGH) #def forward()右車輪と同上
+    Apwm.ChangeDutyCycle(0)     
+    #左車輪(BIN1.BIN2)=(0,+)→負回転
+    Bpwm.start(0)               
+    GPIO.output(BIN1,GPIO.LOW)  #def forward()右車輪と同上
+    Bpwm.ChangeDutyCycle(100)   
 
-
-def back():#後進
-  right_back()
-  left_back()
+def back():          #後進
+    #左車輪(AIN1.AIN2)=(0,+)→負回転
+    Apwm.start(0)                  #def forward()右車輪と同上
+    GPIO.output(AIN1,GPIO.LOW)
+    Apwm.ChangeDutyCycle(75)
+    #左車輪(BIN1.BIN2)=(+,0)→負回転
+    Bpwm.start(0)                  #def forward()右車輪と同上
+    GPIO.output(BIN1,GPIO.LOW)
+    Bpwm.ChangeDutyCycle(100)
+    
+def stop():           #停止
+    #左車輪(AIN1.AIN2)=(0,0)→停止
+    Apwm.start(0)                  #def forward（）右車輪と同上
+    GPIO.output(AIN1,GPIO.LOW)
+    Apwm.ChangeDutyCycle(0)
+    #左車輪(BIN1.BIN2)=(0,0)→停止
+    Bpwm.start(0)                  #def forward()右車輪と同上
+    GPIO.output(BIN1,GPIO.LOW)
+    Bpwm.ChangeDutyCycle(0)
 
 def azimuth(a,b,ap,bp):
     #a = lat, b = lon, ap = latp ,bp = lonp
