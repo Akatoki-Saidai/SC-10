@@ -1,3 +1,4 @@
+#もし精度の高いカスケード分類器を作れた時用
 import cv2
 import numpy as np
 import RPi.GPIO as GPIO #GPIO用
@@ -5,12 +6,25 @@ import time
 import sys
 
 #(動作を止める際にはMaskの映像が動いていて、なおかつMaskのウィンドウをクリックした状態で"q"を押さないと止まらない)
-#現在は化をの認識で代用
-cascade = cv2.CascadeClassifier("C:\\Users\\konan\\Desktop\\haarcascade_frontalface_alt.xml")#用いるデータ(カスケード分類器)のパス
-cap = cv2.VideoCapture(0)#カメラの映像取得
+#現在は顔の認識で代用
+
+#用いるデータ(カスケード分類器)のパス
+cascade = cv2.CascadeClassifier("C:\\Users\\konan\\Desktop\\haarcascade_frontalface_alt.xml")
+
+#カメラの映像取得
+cap = cv2.VideoCapture(0)
+
+#保存する動画のfps
+fps = 30
+
+# 録画する動画のフレームサイズ
+size = (640, 480)
+
+# 出力する動画ファイルの設定（映像を取得して処理するスピードとfpsがかみ合わないと、保存した映像が早送りになってしまう。安いラズパイ用のカメラだと12fpsくらいじゃないと動画が早送りになる。)
+fourcc = cv2.VideoWriter_fourcc(*'XVID')
+video = cv2.VideoWriter('output.avi', fourcc, fps, size)
 
 short_range_checked = False #近距離フェーズに入ったか否か(これを用いて近距離フェーズで一回のみ実行するコードを書く)
-
 
 
 #-------------モーター関係----------------------------------------------------------
@@ -148,7 +162,7 @@ def red_detect(img):
     # HSV色空間に変換(ここでは、取得した映像を処理するために、RGBからHSVに変更するのと、赤色と認識するHSVの値域を設定してます。RGBからHSVにするのは、人間が見る色の感覚とと近いから)
     hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
 
-    # 赤色のHSVの値域1(OpenCVのHSVの範囲は普通の範囲と違うので、ここではOpenCVで赤とされる0～30 150～179が色相としてます）[色相,彩度,明度]
+    # 赤色のHSVの値域1(OpenCVのHSVの範囲は普通の範囲と違うので、ここではOpenCVで赤とされる0～30 150～179が色相としている）[色相,彩度,明度]
     hsv_min = np.array([0, 127, 0])
     hsv_max = np.array([30, 255, 255])
     mask1 = cv2.inRange(hsv, hsv_min, hsv_max)#inRangeは映像を2値化する関数(二値化するのはカラーより情報量が3分の1だから) [多次元配列(画像情報),２値化する条件の下限,２値化する条件の上限]
@@ -215,15 +229,7 @@ def analysis_blob(binary_img):
 
 #赤色認識を行う関数とブロブ解析を行う関数を実行し、結果表示する関数
 def Color_processing():
-    #保存する動画のfps
-    fps = 30
-
-    # 録画する動画のフレームサイズ
-    size = (640, 480)
-
-    # 出力する動画ファイルの設定（映像を取得して処理するスピードとfpsがかみ合わないと、保存した映像が早送りになってしまう。安いラズパイ用のカメラだと12fpsくらいじゃないと動画が早送りになる。)
-    fourcc = cv2.VideoWriter_fourcc(*'XVID')
-    video = cv2.VideoWriter('output.avi', fourcc, fps, size)
+    
     while(cap.isOpened()):
         # フレームを取得
         ret, frame = cap.read()#capに入れられた、カメラの映像のデータを入れる。 retは映像を取得できたかどうかをboolでいれられる
@@ -231,7 +237,6 @@ def Color_processing():
         # 赤色検出(取得できた映像を赤色検出の関数にまわす)
         mask = red_detect(frame)
         
-
         try:
 
 
@@ -309,6 +314,7 @@ def Image_processing():
         ret,frame = cap.read()
         facerect = cascade.detectMultiScale(frame)
         mask = red_detect(frame)
+        video.write(frame)
         try:
 
 
