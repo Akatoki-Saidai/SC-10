@@ -13,7 +13,7 @@ GPIO.setmode(GPIO.BOARD)    #物理ピン番号でGPIOを指定
 GPIO.setup(AIN1,GPIO.OUT)   #AIN1番ピンで
 GPIO.setup(AIN2,GPIO.OUT)   #AIN2ピンで
 GPIO.setup(BIN1,GPIO.OUT)   #BIN1ピンで
-GPIO.setup(AIN2,GPIO.OUT)   #BIN2ピンでGPIO出力設定
+GPIO.setup(BIN2,GPIO.OUT)   #BIN2ピンでGPIO出力設定
 
 #周波数設定
 Apwm = GPIO.PWM(AIN2,255)     #PWM(pin,Hz)→AIN2番ピンで255Hz
