@@ -8,6 +8,8 @@ import numpy as np
 import RPi.GPIO as GPIO #GPIOインポート
 import time#時間制御インポート
 
+f = open('gps.txt', 'a', encoding='utf-8')
+
 goal_latitude = 0
 goal_longitude  =  0
 radius = 6378.137
@@ -271,6 +273,7 @@ def main():
             cv2.imshow("Mask", mask)
 
              # 書き込み
+            f.write(d)
             video.write(frame)
         
         except ValueError:
@@ -302,7 +305,8 @@ def main():
             # qキーが押されたら途中終了(何かあった時ように、手動停止)
         if cv2.waitKey(25) & 0xFF == ord('q'):
             break
-
+    
+    f.close()
     cap.release()
     video.release()
     cv2.destroyAllWindows()
