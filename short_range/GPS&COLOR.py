@@ -8,7 +8,6 @@ import numpy as np
 import RPi.GPIO as GPIO #GPIOインポート
 import time#時間制御インポート
 
-f = open('gps.txt', 'a', encoding='utf-8')
 
 goal_latitude = 0
 goal_longitude  =  0
@@ -273,7 +272,9 @@ def main():
             cv2.imshow("Mask", mask)
 
              # 書き込み
+            f = open('gps.txt', 'a', encoding='utf-8')
             f.write(d)
+            f.close()
             video.write(frame)
         
         except ValueError:
