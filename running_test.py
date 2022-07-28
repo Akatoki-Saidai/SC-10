@@ -118,6 +118,9 @@ with open('gps_history.csv','a') as f:
     while(cap.isOpened()):
         # フレームを取得
         ret, frame = cap.read()
+        
+        #映像反転
+        frame = cv2.rotate(frame,cv2.ROTATE_180)
 
         # 赤色検出
         mask = red_detect(frame)
