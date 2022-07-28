@@ -7,6 +7,8 @@ import RPi.GPIO as GPIO
 import sys
 import csv
 
+
+
 def red_detect(img):
     # HSV色空間に変換
     hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
@@ -109,7 +111,7 @@ size = (640, 480)
 fourcc = cv2.VideoWriter_fourcc(*'XVID')
 video = cv2.VideoWriter('Video.avi', fourcc, fps, size)
 
-
+start = time.perf_counter()
 
 with open('gps_history.csv','a') as f:
     gps_history = csv.writer(f)
@@ -160,6 +162,9 @@ with open('gps_history.csv','a') as f:
                             print('=' * 20)
                             print(my_gps.date_string(), tm[0], tm[1], int(tm[2]))
                             print("latitude:", my_gps.latitude[0], ", longitude:", my_gps.longitude[0])
+                            now = time.perf_counter() - start
+                            gps_data = [now, my_gps.latitude[0], my_gps.longitude[0], my_gps.altitude]
+                            gps_history.writerow(gps_data)
 
         #モーター制御挿入
         #カメラの映像は横640にしてるので、320付近がカメラの中心です
