@@ -14,7 +14,7 @@ BIN2 = 33
 
 #GPIOのモード
 GPIO.setmode(GPIO.BOARD)#物理ピン番号でGPIOを指定
-GPIO.setup(AIN1,GPIO.OUT)#←ここでエラーoutがだめ？→out×,,OUT〇
+GPIO.setup(AIN1,GPIO.OUT)
 GPIO.setup(AIN2,GPIO.OUT)
 #周波数設定
 a1 = GPIO.PWM(AIN1,255)#255Hz
@@ -22,24 +22,24 @@ a2 = GPIO.PWM(AIN2,255)#255Hz
 b1 = GPIO.PWM(BIN1,255)
 b2 = GPIO.PWM(BIN2,255)
 #PWM起動
-a1.start(0)#Aenable接続（E）
-a2.start(0)#Aphase接続（P）
+a1.start(0)
+a2.start(0)
 b1.start(0)
 b2.start(0)
 
 duty = 100 #duty比　回転速度変更用変数
 #DDRV8355 = MODE0 
 #--------------右モータ関数--------------
-def right_forward():#E=1 P=0の時
+def right_forward():#(1,0)の時
     a1.ChangeDutyCycle(duty)
     a2.ChangeDutyCycle(0)
 
 
-def right_back():#E=1 P=1の時
+def right_back():#(0,1)の時
     a1.ChangeDutyCycle(0)
     a2.ChangeDutyCycle(duty)
 
-def right_stop():#E=0 P=0?の時
+def right_stop():#(0,0)の時
     a1.ChangeDutyCycle(0)
     a2.ChangeDutyCycle(0)
 #----------左モーター関数-----------
@@ -93,7 +93,8 @@ class MyController(Controller):
         Controller.__init__(self, **kwargs)
 #モーター動かす   
     def on_triangle_press(self):#前進 なぜかdef <ボタン名称>　命令　の形以外を繰り返し処理してくれない
-        forward()   　           #どこにGPS、地磁気のコード書けばいいの？
+        forward()   　           #どこにGPS、地磁気のコード書けばいいの？→無理!akirameyou
+        
         
     def on_x_press(self):
         back()
