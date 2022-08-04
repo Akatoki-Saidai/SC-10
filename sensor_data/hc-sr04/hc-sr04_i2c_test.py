@@ -32,7 +32,7 @@ def reading(sensor):
         GPIO.cleanup()
     else:
         print ("Incorrect usonic() function varible.")
-whiel True:
+while True:
     print (reading(0))
     if(distance < 30 ):
         break  
