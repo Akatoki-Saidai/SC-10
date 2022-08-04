@@ -34,7 +34,7 @@ def reading(sensor):
         print ("Incorrect usonic() function varible.")
 while True:
     print (reading(0))
-    if(distance < 30 ):
+    if(readinf(0) < 30 ):
         break  
 
 #http://make.bcde.jp/raspberry-pi/%E8%B6%85%E9%9F%B3%E6%B3%A2%E8%B7%9D%E9%9B%A2%E3%82%BB%E3%83%B3%E3%82%B5hc-sr04%E3%82%92%E4%BD%BF%E3%81%86/
