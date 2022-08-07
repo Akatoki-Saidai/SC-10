@@ -272,7 +272,8 @@ def main():
                        thickness=3, lineType=cv2.LINE_AA)
             #GPS(距離)
             d = str(distance(lat,long,pre_lat,pre_long))
-
+          
+            print("GPS",d)
             print("menseki",data[:, 4][max_index])
             #print("menseki",data[:, 4][max_index])
             #print(center[max_index][0])
@@ -305,21 +306,21 @@ def motor_processing():
         try:
             dimensions = data.shape
             if dimensions:
-        # 2次元以上であること。※data[:,4]より2次元目のindex=4を参照しているため
+            # 2次元以上であること。※data[:,4]より2次元目のindex=4を参照しているため
                 if len(dimensions) >= 2:
-            # 2次元目の要素数を確認
+                    # 2次元目の要素数を確認
                     dim2nd = dimensions[1]
-            # 2次元目の要素数5以上ならdata[:,4]の2次元目のindex=4の条件を満たす
+                    # 2次元目の要素数5以上ならdata[:,4]の2次元目のindex=4の条件を満たす
                     if dim2nd >= 5:
                         if  50 <= center[max_index][0] and center[max_index][0] < 280 and  50 < data[:, 4][max_index] and data[:, 4][max_index] <= 40000:
-                #まっすぐ進み動作(物体が中心近くにいる際)
+                       #まっすぐ進み動作(物体が中心近くにいる際)
                             forward()
                             time.sleep(1)
                             stop()
                             time.sleep(1)
         
                         elif data[:, 4][max_index] <= 50:
-                 #回転動作("赤い物体を検出できなくなった際")
+                       #回転動作("赤い物体を検出できなくなった際")
                             CW()
                             time.sleep(1)
                             stop()
@@ -327,21 +328,21 @@ def motor_processing():
         
 
                         elif center[max_index][0] < 270 and  50 < data[:, 4][max_index] and data[:, 4][max_index] <= 40000:
-                    #回転する動作(物体がカメラの中心から左にずれている際)
+                       #回転する動作(物体がカメラの中心から左にずれている際)
                             CCW()
                             time.sleep(1)
                             stop()
                             time.sleep(1)
         
                         elif center[max_index][0] >= 370 and  50 < data[:, 4][max_index] and data[:, 4][max_index] <= 40000:
-                    #回転する動作（物体がカメラの中心から右にずれている際）
+                       #回転する動作（物体がカメラの中心から右にずれている際）
                             CW()
                             time.sleep(1)
                             stop()
                             time.sleep(1)
 
                         elif data[:, 4][max_index] > 40000:
-                    #止まる(物体の近くに接近した際)
+                       #止まる(物体の近くに接近した際)
                             stop()
 
                             
