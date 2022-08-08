@@ -8,7 +8,8 @@ import numpy as np
 import RPi.GPIO as GPIO #GPIOインポート
 import time#時間制御インポート
 import threading
-
+import csv
+import atexit
 
 goal_latitude = 0
 goal_longitude  =  0
@@ -37,7 +38,7 @@ a2.start(0)#Aphase接続（P）
 b1.start(0)
 b2.start(0)
 
-duty = 100 #duty比　回転速度変更用変数
+duty = 50 #duty比　回転速度変更用変数
 #DDRV8355 = MODE0 
 #--------------右モータ関数--------------
 def right_forward():#E=1 P=0の時
@@ -87,6 +88,10 @@ def stop():#停止
 def CW():#後進
   right_back()
   left_back()
+  
+@atexit.register  
+def CLEAN():
+    GPIO.cleanup()
   
     
 def azimuth(a,b,ap,bp):
@@ -178,13 +183,13 @@ def main():
    
     # カメラのキャプチャ
     cap = cv2.VideoCapture(0)
-    cap.set(cv2.CAP_PROP_FRAME_WIDTH, 320)
-    cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 240)
+    cap.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
+    cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
      
     fps = 15
 
     # 録画する動画のフレームサイズ（webカメラと同じにする）
-    size = (320, 240)
+    size = (640, 480)
 
     # 出力する動画ファイルの設定
     fourcc = cv2.VideoWriter_fourcc(*'H264')
@@ -219,85 +224,89 @@ def main():
     tm_last = 0
     count = 0
 
+    with open("log.csv","w") as f:
+        writer = csv.writer(f)
+        while(cap.isOpened()):
+            # フレームを取得
+            cap.set(cv2.CAP_PROP_BUFFERSIZE, 1)
+            _, frame = cap.read()
+
+            #映像反転
+            frame = cv2.rotate(frame,cv2.ROTATE_180)
+            
+            # 赤色検出
+            mask = red_detect(frame)
+
+            (count, sentence) = serialpi.bb_serial_read(RX)
+            if len(sentence) > 0:
+                for x in sentence:
+                    if 10 <= x <= 126:
+                        stat = my_gps.update(chr(x))
+                        if stat:
+                            tm = my_gps.timestamp
+                            tm_now = (tm[0] * 3600) + (tm[1] * 60) + int(tm[2])
+                            if (tm_now - tm_last) >= 10:
+                                print('=' * 20)
+                                print(my_gps.date_string(), tm[0], tm[1], int(tm[2]))
+                                print("latitude:", my_gps.latitude[0], ", longitude:", my_gps.longitude[0])
+                                row = [(my_gps.latitude[0], my_gps.longitude[0])]
+                                writer.writerow(row)
+                                #ここまでsampleのコピペ
+
+                                #ここから自作
+                                lat = my_gps.latitude[0]
+                                long = my_gps.longitude[0]
+                                #方位角計算
+                                delta_fai = azimuth(lat,long,pre_lat,pre_long)
+                                #距離計算
+                                d = distance(lat,long,pre_lat,pre_long)
+                                #モーター回転
+                                motor(delta_fai,d)
+                                pre_lat = lat
+                                pre_long = long
+            
+            
+            try:
+
+                # マスク画像をブロブ解析（面積最大のブロブ情報を取得）
+                target = analysis_blob(mask)
+
+                # 面積最大ブロブの中心座標を取得
+                center_x = int(target["center"][0])
+                center_y = int(target["center"][1])
+
+                # フレームに面積最大ブロブの中心周囲を円で描く
+                cv2.circle(frame, (center_x, center_y), 50, (0, 200, 0),
+                           thickness=3, lineType=cv2.LINE_AA)
+                #GPS(距離)
+                d = str(distance(lat,long,pre_lat,pre_long))
+
+                print("menseki",data[:, 4][max_index])
+                #print("menseki",data[:, 4][max_index])
+                #print(center[max_index][0])
+             
+                # 結果表示
+                cv2.imshow("Frame", frame)
+                cv2.imshow("Mask", mask)
+
+                 # 書き込み
+                video.write(frame)
+            
+            except ValueError:
+                #回転動作("赤い物体を検出できなくなった際")
+                CW()
+                time.sleep(1)
+                stop()
+                time.sleep(1)
+            
+            if cv2.waitKey(25) & 0xFF == ord('q'):
+                GPIO.cleanup()
+                break
         
-    while(cap.isOpened()):
-        # フレームを取得
-        cap.set(cv2.CAP_PROP_BUFFERSIZE, 1)
-        _, frame = cap.read()
-
-        #映像反転
-        frame = cv2.rotate(frame,cv2.ROTATE_180)
         
-        # 赤色検出
-        mask = red_detect(frame)
-
-        (count, sentence) = serialpi.bb_serial_read(RX)
-        if len(sentence) > 0:
-            for x in sentence:
-                if 10 <= x <= 126:
-                    stat = my_gps.update(chr(x))
-                    if stat:
-                        tm = my_gps.timestamp
-                        tm_now = (tm[0] * 3600) + (tm[1] * 60) + int(tm[2])
-                        if (tm_now - tm_last) >= 10:
-                            print('=' * 20)
-                            print(my_gps.date_string(), tm[0], tm[1], int(tm[2]))
-                            print("latitude:", my_gps.latitude[0], ", longitude:", my_gps.longitude[0])
-                            #ここまでsampleのコピペ
-
-                            #ここから自作
-                            lat = my_gps.latitude[0]
-                            long = my_gps.longitude[0]
-                            #方位角計算
-                            delta_fai = azimuth(lat,long,pre_lat,pre_long)
-                            #距離計算
-                            d = distance(lat,long,pre_lat,pre_long)
-                            #モーター回転
-                            motor(delta_fai,d)
-                            pre_lat = lat
-                            pre_long = long
-        
-        
-        try:
-
-            # マスク画像をブロブ解析（面積最大のブロブ情報を取得）
-            target = analysis_blob(mask)
-
-            # 面積最大ブロブの中心座標を取得
-            center_x = int(target["center"][0])
-            center_y = int(target["center"][1])
-
-            # フレームに面積最大ブロブの中心周囲を円で描く
-            cv2.circle(frame, (center_x, center_y), 50, (0, 200, 0),
-                       thickness=3, lineType=cv2.LINE_AA)
-            #GPS(距離)
-            d = str(distance(lat,long,pre_lat,pre_long))
-          
-            print("GPS",d)
-            print("menseki",data[:, 4][max_index])
-            #print("menseki",data[:, 4][max_index])
-            #print(center[max_index][0])
-         
-            # 結果表示
-            cv2.imshow("Frame", frame)
-            cv2.imshow("Mask", mask)
-
-             # 書き込み
-            f = open('gps.txt', 'a', encoding='utf-8')
-            f.write(d)
-            f.close()
-            video.write(frame)
-        
-        except ValueError:
-            continue
-        
-        if cv2.waitKey(25) & 0xFF == ord('q'):
-            break
-    
-    
-    cap.release()
-    video.release()
-    cv2.destroyAllWindows()
+        cap.release()
+        video.release()
+        cv2.destroyAllWindows()
 
 
 def motor_processing():
@@ -306,43 +315,38 @@ def motor_processing():
         try:
             dimensions = data.shape
             if dimensions:
-            # 2次元以上であること。※data[:,4]より2次元目のindex=4を参照しているため
+        # 2次元以上であること。※data[:,4]より2次元目のindex=4を参照しているため
                 if len(dimensions) >= 2:
-                    # 2次元目の要素数を確認
+            # 2次元目の要素数を確認
                     dim2nd = dimensions[1]
-                    # 2次元目の要素数5以上ならdata[:,4]の2次元目のindex=4の条件を満たす
+            # 2次元目の要素数5以上ならdata[:,4]の2次元目のindex=4の条件を満たす
                     if dim2nd >= 5:
-                        if  50 <= center[max_index][0] and center[max_index][0] < 280 and  50 < data[:, 4][max_index] and data[:, 4][max_index] <= 40000:
-                       #まっすぐ進み動作(物体が中心近くにいる際)
+                        if  170 <= center[max_index][0] and center[max_index][0] < 470 and  50 < data[:, 4][max_index] and data[:, 4][max_index] <= 80000:
+                #まっすぐ進み動作(物体が中心近くにいる際)
                             forward()
                             time.sleep(1)
                             stop()
                             time.sleep(1)
         
-                        elif data[:, 4][max_index] <= 50:
-                       #回転動作("赤い物体を検出できなくなった際")
-                            CW()
-                            time.sleep(1)
-                            stop()
-                            time.sleep(1)
+
         
 
-                        elif center[max_index][0] < 270 and  50 < data[:, 4][max_index] and data[:, 4][max_index] <= 40000:
-                       #回転する動作(物体がカメラの中心から左にずれている際)
+                        elif center[max_index][0] < 170 and  50 < data[:, 4][max_index] and data[:, 4][max_index] <= 80000:
+                    #回転する動作(物体がカメラの中心から左にずれている際)
                             CCW()
                             time.sleep(1)
                             stop()
                             time.sleep(1)
         
-                        elif center[max_index][0] >= 370 and  50 < data[:, 4][max_index] and data[:, 4][max_index] <= 40000:
-                       #回転する動作（物体がカメラの中心から右にずれている際）
+                        elif center[max_index][0] >= 470 and  50 < data[:, 4][max_index] and data[:, 4][max_index] <= 80000:
+                    #回転する動作（物体がカメラの中心から右にずれている際）
                             CW()
                             time.sleep(1)
                             stop()
                             time.sleep(1)
 
-                        elif data[:, 4][max_index] > 40000:
-                       #止まる(物体の近くに接近した際)
+                        elif data[:, 4][max_index] > 80000:
+                    #止まる(物体の近くに接近した際)
                             stop()
 
                             
