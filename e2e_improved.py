@@ -100,7 +100,7 @@ def lost():
                 if(losting == 0):
                     break
         
-@atexit.register  
+ 
 def CLEAN():
     GPIO.cleanup()
   
@@ -382,3 +382,7 @@ if __name__ == "__main__":
     time.sleep(3)
     thread_losting.start()
     thread_motor_processing.start()
+    atexit.register(CLEAN)
+    
+    
+    
