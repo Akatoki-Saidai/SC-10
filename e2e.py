@@ -298,7 +298,7 @@ def main():
                 CW()
                 time.sleep(0.15)
                 stop()
-                time.sleep(2)
+                time.sleep(4)
             
             if cv2.waitKey(25) & 0xFF == ord('q'):
                 GPIO.cleanup()
