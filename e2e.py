@@ -294,10 +294,11 @@ def main():
             
             except ValueError:
                 #回転動作("赤い物体を検出できなくなった際")
+                video.write(frame)
                 CW()
-                time.sleep(1)
+                time.sleep(0.15)
                 stop()
-                time.sleep(1)
+                time.sleep(2)
             
             if cv2.waitKey(25) & 0xFF == ord('q'):
                 GPIO.cleanup()
