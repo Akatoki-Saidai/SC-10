@@ -2,7 +2,6 @@
 
 import smbus
 import time
-import csv
 
 bus_number  = 1
 i2c_address = 0x76
@@ -82,7 +81,7 @@ def compensate_P(adc_P):
 	v1 = (digP[8] * (((pressure / 8.0) * (pressure / 8.0)) / 8192.0)) / 4096
 	v2 = ((pressure / 4.0) * digP[7]) / 8192.0
 	pressure = pressure + ((v1 + v2 + digP[6]) / 16.0)  
-    return pressure/100
+	return pressure/100
 
 
 def compensate_T(adc_T):
@@ -91,7 +90,7 @@ def compensate_T(adc_T):
 	v2 = (adc_T / 131072.0 - digT[0] / 8192.0) * (adc_T / 131072.0 - digT[0] / 8192.0) * digT[2]
 	t_fine = v1 + v2
 	temperature = t_fine / 5120.0
-    return temperature
+	return temperature
 
 def compensate_H(adc_H):
 	global t_fine
@@ -105,7 +104,7 @@ def compensate_H(adc_H):
 		var_h = 100.0
 	elif var_h < 0.0:
 		var_h = 0.0
-    return var_h
+	return var_h
 
 
 def setup():
@@ -132,34 +131,18 @@ get_calib_param()
 
 
 
-with open('bme_data.csv','w') as f:
-	writer = csv.writer(f)
-	while True:
-		get_calib_param()
 
-		data = []
-		for i in range (0xF7, 0xF7+8):
-			data.append(bus.read_byte_data(i2c_address,i))
-		pres_raw = (data[0] << 12) | (data[1] << 4) | (data[2] >> 4)
-		temp_raw = (data[3] << 12) | (data[4] << 4) | (data[5] >> 4)
-		hum_raw  = (data[6] << 8)  |  data[7]
-		
-		t_p_h = [compensate_T(temp_raw), compensate_P(pres_raw), compensate_H(hum_raw)]
-		
-		writer.writerow(t_p_h)
+while True:
+	get_calib_param()
+
+	data = []
+	for i in range (0xF7, 0xF7+8):
+		data.append(bus.read_byte_data(i2c_address,i))
+	pres_raw = (data[0] << 12) | (data[1] << 4) | (data[2] >> 4)
+	temp_raw = (data[3] << 12) | (data[4] << 4) | (data[5] >> 4)
+	hum_raw  = (data[6] << 8)  |  data[7]
+	
+	t_p_h = [compensate_T(temp_raw), compensate_P(pres_raw), compensate_H(hum_raw)]
 """
-setup():まあsetup。
-get_calib_param():データ取るやつだと思われる。
-readData():データを受け取って、csvファイルに書き込むやつ。
-writeRegはよくわかんないけど必要なやつ。
-compensateはそれぞれのデータの計算をするやつ。
-
-compensate_T(temp_raw), compensate_P(pres_raw), compensate_H(hum_raw)
-はそれぞれ温度、圧力、湿度がとれる。
-多分使うのはこれくらい。
-
-if __name__ == '__main__':以降のwhile文は適当に付けただけなのでうまく動くかは確認してません。
-うまいことやってください。お願いします。
-
 https://dev.classmethod.jp/articles/raspberrypi-and-bme280/
 """
