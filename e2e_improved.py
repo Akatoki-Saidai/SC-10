@@ -92,10 +92,11 @@ def CW():#後進
 def lost():
     while True:
         while True:
-            if(losting == 1):
+            if(losing == 1):
                 CW()
-                time.sleep(0.3)
+                time.sleep(0.5)
                 stop()
+                time.sleep(3)
                 time.sleep(2)
                 if(losting == 0):
                     break
@@ -204,6 +205,7 @@ def main():
 
     #見しうなった時のキャプチャー
     global losting
+    losing = 0
 
     # 出力する動画ファイルの設定
     fourcc = cv2.VideoWriter_fourcc(*'H264')
@@ -309,8 +311,10 @@ def main():
                 video.write(frame)
             
             except ValueError:
+                cv2.imshow("Frame", frame)
+                cv2.imshow("Mask", mask)
                 video.write(frame)
-                losting = 1
+                losing = 1
 
             
             if cv2.waitKey(25) & 0xFF == ord('q'):
@@ -329,42 +333,44 @@ def motor_processing():
             if dimensions:
         # 2次元以上であること。※data[:,4]より2次元目のindex=4を参照しているため
                 if len(dimensions) >= 2:
+                    losting = 0
             # 2次元目の要素数を確認
                     dim2nd = dimensions[1]
             # 2次元目の要素数5以上ならdata[:,4]の2次元目のindex=4の条件を満たす
                     if dim2nd >= 5:
-                        losting = 0
-                        if  170 <= center[max_index][0] and center[max_index][0] < 470 and  50 < data[:, 4][max_index] and data[:, 4][max_index] <= 80000:
+                        if  100 <= center[max_index][0] and center[max_index][0] < 540 and  50 < data[:, 4][max_index] and data[:, 4][max_index] <= 80000:
                 #まっすぐ進み動作(物体が中心近くにいる際)
                             forward()
-                            time.sleep(1)
-                            stop()
-                            time.sleep(1)
-        
-                        elif data[:, 4][max_index] <= 50:
-                            CW()
-                            time.sleep(0.3)
-                            stop()
+                            time.sleep(3)
                             time.sleep(2)
-        
-
-                        elif center[max_index][0] < 170 and  50 < data[:, 4][max_index] and data[:, 4][max_index] <= 80000:
+                            stop()
+                            time.sleep(1)
+                        elif data[:, 4][max_index] <= 50 :
+                            CW()
+                            time.sleep(0.5)
+                            stop()
+                            time.sleep(3)
+                            time.sleep(2)
+                            
+                        elif center[max_index][0] < 100 and  50 < data[:, 4][max_index] and data[:, 4][max_index] <= 80000:
                     #回転する動作(物体がカメラの中心から左にずれている際)
                             CCW()
-                            time.sleep(1)
+                            time.sleep(0.2)
                             stop()
                             time.sleep(1)
         
-                        elif center[max_index][0] >= 470 and  50 < data[:, 4][max_index] and data[:, 4][max_index] <= 80000:
+                        elif center[max_index][0] >= 540 and  50 < data[:, 4][max_index] and data[:, 4][max_index] <= 80000:
                     #回転する動作（物体がカメラの中心から右にずれている際）
                             CW()
-                            time.sleep(1)
+                            time.sleep(0.2)
                             stop()
                             time.sleep(1)
 
                         elif data[:, 4][max_index] > 80000:
                     #止まる(物体の近くに接近した際)
                             stop()
+                            GPIO.cleanup()
+                            break
 
                             
         except IndexError:
