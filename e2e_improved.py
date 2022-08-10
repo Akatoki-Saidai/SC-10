@@ -368,6 +368,7 @@ def motor_processing():
                             time.sleep(0.3)
                             stop()
                             time.sleep(1)
+                            
                         elif data[:, 4][max_index] <= 50 :
                             CW()
                             time.sleep(0.2)
@@ -375,14 +376,14 @@ def motor_processing():
                             time.sleep(2)
                             time.sleep(2)
                             
-                        elif center[max_index][0] < 150 and  50 < data[:, 4][max_index] and data[:, 4][max_index] <= 80000:
+                        elif center[max_index][0] < 150 and  50 < data[:, 4][max_index] and data[:, 4][max_index] <= 200000:
                     #回転する動作(物体がカメラの中心から左にずれている際)
                             CCW()
                             time.sleep(0.2)
                             stop()
                             time.sleep(1)
         
-                        elif center[max_index][0] >= 540 and  50 < data[:, 4][max_index] and data[:, 4][max_index] <= 80000:
+                        elif center[max_index][0] >= 540 and  50 < data[:, 4][max_index] and data[:, 4][max_index] <= 200000:
                     #回転する動作（物体がカメラの中心から右にずれている際）
                             CW()
                             time.sleep(0.2)
