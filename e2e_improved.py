@@ -14,6 +14,8 @@ import atexit
 goal_latitude = 0
 goal_longitude  =  0
 radius = 6378.137
+stop_last = 0
+data = 0
 
 #PIN指定
 AIN1 = 15
@@ -70,8 +72,10 @@ def left_stop():
 
 #-----------動く方向関数---------
 def CCW():#前進
-    right_forward()
-    left_forward()
+    a1.ChangeDutyCycle(100)
+    a2.ChangeDutyCycle(0)
+    b1.ChangeDutyCycle(100)
+    b2.ChangeDutyCycle(0)
 
 def back():#右回転
     right_back()
@@ -94,11 +98,11 @@ def lost():
         while True:
             if(losing == 1):
                 CW()
-                time.sleep(0.5)
+                time.sleep(0.2)
                 stop()
                 time.sleep(3)
                 time.sleep(2)
-                if(losting == 0):
+                if(losing == 0):
                     break
         
  
@@ -189,6 +193,28 @@ def analysis_blob(binary_img):
     raise ValueError
 
 
+def camera_stop():
+    global stop_last
+    stop_last = 0
+    while True:
+        try:
+            if cv2.waitKey(25) & 0xFF == ord('q') or data[:, 4][max_index] > 200000:
+                GPIO.cleanup()
+                stop_last = 1
+                
+        except IndexError:
+            CW()
+            time.sleep(0.2)
+            stop()
+            time.sleep(3)
+            time.sleep(2)
+
+        
+        
+    cap.release()
+    video.release()
+    cv2.destroyAllWindows()
+
 
 
 def main():
@@ -204,7 +230,7 @@ def main():
     size = (640, 480)
 
     #見しうなった時のキャプチャー
-    global losting
+    global losing
     losing = 0
 
     # 出力する動画ファイルの設定
@@ -315,16 +341,11 @@ def main():
                 cv2.imshow("Mask", mask)
                 video.write(frame)
                 losing = 1
-
-            
-            if cv2.waitKey(25) & 0xFF == ord('q'):
-                GPIO.cleanup()
+                
+            if stop_last == 1:
                 break
-        
-        
-        cap.release()
-        video.release()
-        cv2.destroyAllWindows()
+
+
 
 def motor_processing():
     while True:
@@ -333,26 +354,28 @@ def motor_processing():
             if dimensions:
         # 2次元以上であること。※data[:,4]より2次元目のindex=4を参照しているため
                 if len(dimensions) >= 2:
-                    losting = 0
+                    losing = 0
             # 2次元目の要素数を確認
                     dim2nd = dimensions[1]
             # 2次元目の要素数5以上ならdata[:,4]の2次元目のindex=4の条件を満たす
                     if dim2nd >= 5:
-                        if  100 <= center[max_index][0] and center[max_index][0] < 540 and  50 < data[:, 4][max_index] and data[:, 4][max_index] <= 80000:
+                        if  150 <= center[max_index][0] and center[max_index][0] < 540 and  50 < data[:, 4][max_index] and data[:, 4][max_index] <= 80000:
                 #まっすぐ進み動作(物体が中心近くにいる際)
                             forward()
                             time.sleep(3)
                             time.sleep(2)
+                            CCW()
+                            time.sleep(0.3)
                             stop()
                             time.sleep(1)
                         elif data[:, 4][max_index] <= 50 :
                             CW()
-                            time.sleep(0.5)
+                            time.sleep(0.2)
                             stop()
-                            time.sleep(3)
+                            time.sleep(2)
                             time.sleep(2)
                             
-                        elif center[max_index][0] < 100 and  50 < data[:, 4][max_index] and data[:, 4][max_index] <= 80000:
+                        elif center[max_index][0] < 150 and  50 < data[:, 4][max_index] and data[:, 4][max_index] <= 80000:
                     #回転する動作(物体がカメラの中心から左にずれている際)
                             CCW()
                             time.sleep(0.2)
@@ -366,7 +389,7 @@ def motor_processing():
                             stop()
                             time.sleep(1)
 
-                        elif data[:, 4][max_index] > 80000:
+                        elif data[:, 4][max_index] > 200000:
                     #止まる(物体の近くに接近した際)
                             stop()
                             GPIO.cleanup()
@@ -384,10 +407,12 @@ if __name__ == "__main__":
     thread_main = threading.Thread(target=main)
     thread_motor_processing = threading.Thread(target=motor_processing)
     thread_losting = threading.Thread(target=lost)
+    thread_camera_stop = threading.Thread(target=camera_stop)
     thread_main.start()
     time.sleep(3)
     thread_losting.start()
     thread_motor_processing.start()
+    thread_camera_stop.start()
     atexit.register(CLEAN)
     
     
