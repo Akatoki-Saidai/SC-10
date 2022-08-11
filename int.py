@@ -15,7 +15,10 @@ import sys
 from Adafruit_BNO055 import BNO055
 import logging
 
+data = 0
 max_index = 0
+stop_last = 0
+losing = 0
 
 #bnosetup
 bno = BNO055.BNO055(rst=18)
@@ -71,7 +74,6 @@ def left_stop():
     b2.ChangeDutyCycle(0)
 
 
-
 #-----------動く方向関数---------
 def CCW():#前進
     right_forward()
@@ -105,7 +107,8 @@ def lost():
                 if(losing == 0):
                     break
         
- 
+
+
 def CLEAN():
     GPIO.cleanup()
   
@@ -194,27 +197,7 @@ def analysis_blob(binary_img):
  
 stop_last = 0
 
-def camera_stop():
-    global stop_last
-    stop_last = 0
-    while True:
-        try:
-            if cv2.waitKey(25) & 0xFF == ord('q') or data[:, 4][max_index] > 200000:
-                GPIO.cleanup()
-                stop_last = 1
-                
-        except IndexError:
-            CW()
-            time.sleep(0.2)
-            stop()
-            time.sleep(3)
-            time.sleep(2)
 
-        
-        
-    cap.release()
-    video.release()
-    cv2.destroyAllWindows()
 
 
 
@@ -303,7 +286,7 @@ def motor_processing():
                     dim2nd = dimensions[1]
             # 2次元目の要素数5以上ならdata[:,4]の2次元目のindex=4の条件を満たす
                     if dim2nd >= 5:
-                        if  150 <= center[max_index][0] and center[max_index][0] < 540 and  50 < data[:, 4][max_index] and data[:, 4][max_index] <= 80000:
+                        if  150 <= center[max_index][0] and center[max_index][0] < 540 and  50 < data[:, 4][max_index] and data[:, 4][max_index] <= 200000:
                 #まっすぐ進み動作(物体が中心近くにいる際)
                             forward()
                             time.sleep(3)
@@ -319,14 +302,14 @@ def motor_processing():
                             time.sleep(2)
                             time.sleep(2)
                             
-                        elif center[max_index][0] < 150 and  50 < data[:, 4][max_index] and data[:, 4][max_index] <= 80000:
+                        elif center[max_index][0] < 150 and  50 < data[:, 4][max_index] and data[:, 4][max_index] <= 200000:
                     #回転する動作(物体がカメラの中心から左にずれている際)
                             CCW()
                             time.sleep(0.2)
                             stop()
                             time.sleep(1)
         
-                        elif center[max_index][0] >= 540 and  50 < data[:, 4][max_index] and data[:, 4][max_index] <= 80000:
+                        elif center[max_index][0] >= 540 and  50 < data[:, 4][max_index] and data[:, 4][max_index] <= 200000:
                     #回転する動作（物体がカメラの中心から右にずれている際）
                             CW()
                             time.sleep(0.2)
@@ -602,7 +585,7 @@ with open('bno_data1.csv', 'w') as fbno1, open('bno_data2.csv','w') as fbno2, op
                 log_data.writerow([now,'im waiting'])
                 print(ay**2,'im waiting' )
             elif  ay**2 > 150:
-                #time.sleep(2)
+                time.sleep(2)
                 log_data.writerow([now,'im falling'])
                 print(ay**2,'im falling')
                 phase += 1
@@ -621,12 +604,9 @@ with open('bno_data1.csv', 'w') as fbno1, open('bno_data2.csv','w') as fbno2, op
             thread_main = threading.Thread(target=main)
             thread_motor_processing = threading.Thread(target=motor_processing)
             thread_losting = threading.Thread(target=lost)
-            thread_camera_stop = threading.Thread(target=camera_stop)
             thread_main.start()
-            time.sleep(3)
             thread_losting.start()
             thread_motor_processing.start()
-            thread_camera_stop.start()
             atexit.register(CLEAN)
     
             
