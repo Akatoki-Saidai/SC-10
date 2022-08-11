@@ -20,7 +20,7 @@ def azimuth(a,b,ap,bp):
 
 def distance(a,b,ap,bp):
     r = radius
-    d = r*acos(sin(ap)*sin(bp)+cos(bp)*cos(b)*cos(a-ap))
+    d = r*acos(sin(ap)*sin(a)+cos(ap)*cos(a)*cos(b-bp))
     return d
 
 def motor(fai,d):
