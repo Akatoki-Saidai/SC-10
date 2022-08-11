@@ -354,7 +354,6 @@ if __name__ == "__main__":
     thread_camera_stop = threading.Thread(target=camera_stop)
     thread_main.start()
     time.sleep(3)
-    time.sleep(1)
     thread_losting.start()
     thread_motor_processing.start()
     thread_camera_stop.start()
