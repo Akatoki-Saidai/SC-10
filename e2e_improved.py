@@ -72,10 +72,8 @@ def left_stop():
 
 #-----------動く方向関数---------
 def CCW():#前進
-    a1.ChangeDutyCycle(100)
-    a2.ChangeDutyCycle(0)
-    b1.ChangeDutyCycle(100)
-    b2.ChangeDutyCycle(0)
+    right_forward()
+    left_forward()
 
 def back():#右回転
     right_back()
@@ -368,7 +366,6 @@ def motor_processing():
                             time.sleep(0.3)
                             stop()
                             time.sleep(1)
-                            
                         elif data[:, 4][max_index] <= 50 :
                             CW()
                             time.sleep(0.2)
@@ -376,14 +373,14 @@ def motor_processing():
                             time.sleep(2)
                             time.sleep(2)
                             
-                        elif center[max_index][0] < 150 and  50 < data[:, 4][max_index] and data[:, 4][max_index] <= 200000:
+                        elif center[max_index][0] < 150 and  50 < data[:, 4][max_index] and data[:, 4][max_index] <= 80000:
                     #回転する動作(物体がカメラの中心から左にずれている際)
                             CCW()
                             time.sleep(0.2)
                             stop()
                             time.sleep(1)
         
-                        elif center[max_index][0] >= 540 and  50 < data[:, 4][max_index] and data[:, 4][max_index] <= 200000:
+                        elif center[max_index][0] >= 540 and  50 < data[:, 4][max_index] and data[:, 4][max_index] <= 80000:
                     #回転する動作（物体がカメラの中心から右にずれている際）
                             CW()
                             time.sleep(0.2)
