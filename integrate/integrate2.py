@@ -235,8 +235,20 @@ def stop():#停止
 def CW():#後進
   right_back()
   left_back()
+	
+def lost():
+    while True:
+        while True:
+            if(losing == 1):
+                CW()
+                time.sleep(0.2)
+                stop()
+                time.sleep(3)
+                time.sleep(2)
+                if(losing == 0):
+                    break
 
-@atexit.register  
+
 def CLEAN():
     GPIO.cleanup()
 
