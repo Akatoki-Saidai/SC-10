@@ -10,12 +10,15 @@ import time#時間制御インポート
 import threading
 import csv
 import atexit
+import smbus
+import datetime
+import sys
+from Adafruit_BNO055 import BNO055
+import logging
 
-goal_latitude = 0
-goal_longitude  =  0
-radius = 6378.137
-stop_last = 0
 data = 0
+max_index = 0
+stop_last = 0
 
 #PIN指定
 AIN1 = 15
@@ -234,38 +237,9 @@ def main():
     # 出力する動画ファイルの設定
     fourcc = cv2.VideoWriter_fourcc(*'H264')
     video = cv2.VideoWriter('VIDEO.avi', fourcc, fps, size)
-
-    baudrate = 9600
-
-    TX = 24
-    RX = 23
-
-    serialpi = pigpio.pi()
-    serialpi.set_mode(RX,pigpio.INPUT)
-    serialpi.set_mode(TX,pigpio.OUTPUT)
-
-    pigpio.exceptions = False
-    serialpi.bb_serial_read_close(RX)
-    pigpio.exceptions = True
-
-    serialpi.bb_serial_read_open(RX,baudrate,8)
-    # gps設定
-    my_gps = MicropyGPS(9, 'dd')
-
-    lat  = 0
-    long = 0 
-
-    global pre_lat
-    global pre_long
-    pre_lat = 0
-    pre_long = 0
-
-    # 10秒ごとに表示
-    tm_last = 0
-    count = 0
-
-    with open("log.csv","w") as f:
-        writer = csv.writer(f)
+    with open('area.csv', 'w') as fcap:
+        area = csv.writer(fcap)
+        area.writerow(['area','center'])
         while(cap.isOpened()):
             # フレームを取得
             cap.set(cv2.CAP_PROP_BUFFERSIZE, 1)
@@ -278,35 +252,6 @@ def main():
             
             # 赤色検出
             mask = red_detect(frame)
-
-            (count, sentence) = serialpi.bb_serial_read(RX)
-            if len(sentence) > 0:
-                for x in sentence:
-                    if 10 <= x <= 126:
-                        stat = my_gps.update(chr(x))
-                        if stat:
-                            tm = my_gps.timestamp
-                            tm_now = (tm[0] * 3600) + (tm[1] * 60) + int(tm[2])
-                            if (tm_now - tm_last) >= 10:
-                                print('=' * 20)
-                                print(my_gps.date_string(), tm[0], tm[1], int(tm[2]))
-                                print("latitude:", my_gps.latitude[0], ", longitude:", my_gps.longitude[0])
-                                row = [(my_gps.latitude[0], my_gps.longitude[0])]
-                                writer.writerow(row)
-                                #ここまでsampleのコピペ
-
-                                #ここから自作
-                                lat = my_gps.latitude[0]
-                                long = my_gps.longitude[0]
-                                #方位角計算
-                                delta_fai = azimuth(lat,long,pre_lat,pre_long)
-                                #距離計算
-                                d = distance(lat,long,pre_lat,pre_long)
-                                #モーター回転
-                                motor(delta_fai,d)
-                                pre_lat = lat
-                                pre_long = long
-            
             
             try:
 
@@ -320,10 +265,11 @@ def main():
                 # フレームに面積最大ブロブの中心周囲を円で描く
                 cv2.circle(frame, (center_x, center_y), 50, (0, 200, 0),
                            thickness=3, lineType=cv2.LINE_AA)
-                #GPS(距離)
-                d = str(distance(lat,long,pre_lat,pre_long))
+
 
                 print("menseki",data[:, 4][max_index])
+                area_row = [data[:, 4][max_index],center_x]
+                area.writerow(area_row)
                 #print("menseki",data[:, 4][max_index])
                 #print(center[max_index][0])
              
@@ -357,7 +303,7 @@ def motor_processing():
                     dim2nd = dimensions[1]
             # 2次元目の要素数5以上ならdata[:,4]の2次元目のindex=4の条件を満たす
                     if dim2nd >= 5:
-                        if  150 <= center[max_index][0] and center[max_index][0] < 540 and  50 < data[:, 4][max_index] and data[:, 4][max_index] <= 80000:
+                        if  150 <= center[max_index][0] and center[max_index][0] < 540 and  50 < data[:, 4][max_index] and data[:, 4][max_index] <= 200000:
                 #まっすぐ進み動作(物体が中心近くにいる際)
                             forward()
                             time.sleep(3)
@@ -373,14 +319,14 @@ def motor_processing():
                             time.sleep(2)
                             time.sleep(2)
                             
-                        elif center[max_index][0] < 150 and  50 < data[:, 4][max_index] and data[:, 4][max_index] <= 80000:
+                        elif center[max_index][0] < 150 and  50 < data[:, 4][max_index] and data[:, 4][max_index] <= 200000:
                     #回転する動作(物体がカメラの中心から左にずれている際)
                             CCW()
                             time.sleep(0.2)
                             stop()
                             time.sleep(1)
         
-                        elif center[max_index][0] >= 540 and  50 < data[:, 4][max_index] and data[:, 4][max_index] <= 80000:
+                        elif center[max_index][0] >= 540 and  50 < data[:, 4][max_index] and data[:, 4][max_index] <= 200000:
                     #回転する動作（物体がカメラの中心から右にずれている際）
                             CW()
                             time.sleep(0.2)
@@ -408,6 +354,7 @@ if __name__ == "__main__":
     thread_camera_stop = threading.Thread(target=camera_stop)
     thread_main.start()
     time.sleep(3)
+    time.sleep(1)
     thread_losting.start()
     thread_motor_processing.start()
     thread_camera_stop.start()
