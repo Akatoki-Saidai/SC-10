@@ -367,19 +367,6 @@ with open('bno_data1.csv', 'w') as fbno1, open('bno_data2.csv','w') as fbno2, op
                 phase += 1
 	
 	if phase == 3:
-	    subprocess.run(['python3 /home/issa/e2e_improved.py'])
-            
-        if phase == 3:
-            thread_main = threading.Thread(target=main)
-            thread_motor_processing = threading.Thread(target=motor_processing)
-            thread_losting = threading.Thread(target=lost)
-            thread_main.start()
-            thread_losting.start()
-            thread_motor_processing.start()
-            atexit.register(CLEAN)
-    
-            
-        
-            
+	    subprocess.run(['python3 /home/issa/e2e_improved.py'])          
             
             
