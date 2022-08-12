@@ -312,7 +312,6 @@ with open('bno_data1.csv', 'w') as fbno1, open('bno_data2.csv','w') as fbno2, op
         ax,ay,az = bno.read_accelerometer()        # Accelerometer data (in meters per second squared):
         lx,ly,lz = bno.read_linear_acceleration()        # Linear acceleration data (i.e. acceleration from movement, not gravity--returned in meters per second squared):
         gx,gy,gz = bno.read_gravity()        # Gravity acceleration data (i.e. acceleration just from gravity--returned in meters per second squared):
-        get_calib_param()
         data = []
         for i in range (0xF7, 0xF7+8):
             data.append(bus.read_byte_data(i2c_address,i))
@@ -344,13 +343,13 @@ with open('bno_data1.csv', 'w') as fbno1, open('bno_data2.csv','w') as fbno2, op
         bno0555.writerow(bnodata5)
         bme280.writerow(t_p_h)
         
-        goal_heading = 0
+        goal_heading = 270
         if phase == 1: #待機フェーズ
-            if ay**2 < 150: #条件は後で変更
+            if ay**2 < 200: #条件は後で変更
                 time.sleep(0.01)
                 log_data.writerow([now,'im waiting'])
                 print(ay**2,'im waiting' )
-            elif  ay**2 > 150:
+            elif  ay**2 > 200:
                 time.sleep(2)
                 log_data.writerow([now,'im falling'])
                 print(ay**2,'im falling')
@@ -362,11 +361,10 @@ with open('bno_data1.csv', 'w') as fbno1, open('bno_data2.csv','w') as fbno2, op
             servo_angle(-40)
             Servo.stop()
             CCW()
-            if goal_heading - heading < 5:
+            if goal_heading - heading < 1:
                 stop()
                 phase += 1
 	
-	if phase == 3:
-	    subprocess.run(['python3 /home/issa/e2e_improved.py'])          
-            
-            
+        if phase == 3:
+            subprocess.run(['python' , 'e2e_improved.py'])          
+            break
