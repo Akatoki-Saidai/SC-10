@@ -172,9 +172,9 @@ def red_detect(img):
     # 赤色のHSVの値域1
     hsv_min = np.array([0, 200, 190])
     hsv_max = np.array([15, 255, 255])
-    mask1 = cv2.inRange(hsv, hsv_min, hsv_max)
+    mask1 = cv2.inRange(hsv, hsv_min, hsv_max) "inRange(hsvデータ ,　二値化する色の最小 , 二値化する色の最大)
 
-    # 赤色のHSVの値域2
+    # 赤色のHSVの値域2(HSV空間は360で考えるから(OpenCVのhsvは(色相 , 彩度 , 明度)の範囲が(0～180 , 0～255 , 0～255))
     hsv_min = np.array([165, 200, 190])
     hsv_max = np.array([179, 255, 255])
     mask2 = cv2.inRange(hsv, hsv_min, hsv_max)
@@ -190,11 +190,11 @@ def analysis_blob(binary_img):
     global max_index
     global center
     # 2値画像のラベリング処理
-    label = cv2.connectedComponentsWithStats(binary_img)
+    label = cv2.connectedComponentsWithStats(binary_img)　#このメソッドについては、https://axa.biopapyrus.jp/ia/opencv/object-detection.htmlを参考にするとわかりやすい
 
     # ブロブ情報を項目別に抽出
     n = label[0] - 1
-    data = np.delete(label[2], 0, 0)
+    data = np.delete(label[2], 0, 0)　#np.delete(入力配列 , 削除する行番号や列番号 , 削除対象の軸)
     center = np.delete(label[3], 0, 0)
 
     # 配列の次元数を取得
@@ -204,10 +204,24 @@ def analysis_blob(binary_img):
     if dimensions:
         # 2次元以上であること。※data[:,4]より2次元目のindex=4を参照しているため
         if len(dimensions) >= 2:
+            """
+              axis =1
+           a  [[0 1 2 3 4　　1次元
+           x    5 6 7 8 9　　2次元
+           i    10 11 12 13 14]]    3次元
+           s
+           =
+           0
+             """
             # 2次元目の要素数を確認
             dim2nd = dimensions[1]
+            """
+             [[0 1 2 3 4　　1次元  [0]
+               5 6 7 8 9　　2次元  [1]
+               10 11 12 13 14]]    3次元 [2]
+            """
             # 2次元目の要素数5以上ならdata[:,4]の2次元目のindex=4の条件を満たす
-            if dim2nd >= 5:
+            if dim2nd >= 5:  #例　[1](2次元の要素が5個(5 6 7 8 9)あるから、条件を満たす
                 # ブロブ面積最大のインデックス
                 max_index = np.argmax(data[:, 4])
 
@@ -269,27 +283,27 @@ def main():
     losing = 0
 
     # 出力する動画ファイルの設定
-    fourcc = cv2.VideoWriter_fourcc(*'H264')
+    fourcc = cv2.VideoWriter_fourcc(*'H264')#H264は圧縮フォーマット形式なので、速度を上昇させることを目的で)
     video = cv2.VideoWriter('VIDEO.avi', fourcc, fps, size)
     with open('area.csv', 'w') as fcap, open('hcsr04.csv', 'w') as fh: 
         area = csv.writer(fcap)
         area.writerow(['area','center'])
         hcsr04 = csv.writer(fh)
         hcsr04.writerow(['distance'])
-        while(cap.isOpened()):
+        while(cap.isOpened()):#映像が読み込まれているのならば、 cap.isOpened() = True となり、ループが行われる
             # フレームを取得
-            cap.set(cv2.CAP_PROP_BUFFERSIZE, 1)
-            _, frame = cap.read()
+            cap.set(cv2.CAP_PROP_BUFFERSIZE, 1) #バッファサイズを１で指定することにより、現在の映像を取得
+            _, frame = cap.read()　
 
             
 
             #映像反転
-            frame = cv2.rotate(frame,cv2.ROTATE_180)
+            frame = cv2.rotate(frame,cv2.ROTATE_180) #カメラを反対に搭載しているため.処理を減らしたいのであれば、後で反転されるほうがいい.
             
             # 赤色検出
             mask = red_detect(frame)
             
-            try:
+            try:　#赤い物体を認識できなくなったとき,ValueErrorが発生するので例外処理を行っている.
 
                 # マスク画像をブロブ解析（面積最大のブロブ情報を取得）
                 target = analysis_blob(mask)
@@ -299,7 +313,7 @@ def main():
                 center_y = int(target["center"][1])
 
                 # フレームに面積最大ブロブの中心周囲を円で描く
-                cv2.circle(frame, (center_x, center_y), 50, (0, 200, 0),
+                cv2.circle(frame, (center_x, center_y), 50, (200, 0, 0), #(映像のデータ,円の中心,円の半径,円の色(青,緑,赤),円の厚さ,線を描写するアルゴリズム)
                            thickness=3, lineType=cv2.LINE_AA)
 
 
