@@ -350,9 +350,9 @@ with open('bno_data1.csv', 'w') as fbno1, open('bno_data2.csv','w') as fbno2, op
                 log_data.writerow([now,'im waiting'])
                 print(ay**2,'im waiting' )
             elif  ay**2 > 200:
-                time.sleep(2)
                 log_data.writerow([now,'im falling'])
                 print(ay**2,'im falling')
+		
                 phase += 1
                 
             #elif :#計測開始から450秒（7分30秒）経ったら走行フェーズ開始
