@@ -128,7 +128,41 @@ def distance(a,b,ap,bp):
 def motor(fai,d):
     ##モーター回転プログラム
     ##Ⅰ秒で何度回る？？
-    return 0     
+    return 0
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+ 
+def reading(sensor):
+    import time
+    import RPi.GPIO as GPIO
+    GPIO.setwarnings(False)
+     
+    GPIO.setmode(GPIO.BOARD)
+    TRIG = 11
+    ECHO = 13
+     
+    if sensor == 0:
+        GPIO.setup(TRIG,GPIO.OUT)
+        GPIO.setup(ECHO,GPIO.IN)
+        GPIO.output(TRIG, GPIO.LOW)
+        time.sleep(0.3)
+         
+        GPIO.output(TRIG, True)
+        time.sleep(0.00001)
+        GPIO.output(TRIG, False)
+ 
+        while GPIO.input(ECHO) == 0:
+          signaloff = time.time()
+         
+        while GPIO.input(ECHO) == 1:
+          signalon = time.time()
+ 
+        timepassed = signalon - signaloff
+        distance = timepassed * 17000
+        return distance
+        GPIO.cleanup()
+    else:
+        print ("Incorrect usonic() function varible.")
     
 
 def red_detect(img):
@@ -136,12 +170,12 @@ def red_detect(img):
     hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
 
     # 赤色のHSVの値域1
-    hsv_min = np.array([0, 180, 50])
+    hsv_min = np.array([0, 200, 190])
     hsv_max = np.array([15, 255, 255])
     mask1 = cv2.inRange(hsv, hsv_min, hsv_max)
 
     # 赤色のHSVの値域2
-    hsv_min = np.array([165, 180, 50])
+    hsv_min = np.array([165, 200, 190])
     hsv_max = np.array([179, 255, 255])
     mask2 = cv2.inRange(hsv, hsv_min, hsv_max)
 
@@ -199,7 +233,7 @@ def camera_stop():
     stop_last = 0
     while True:
         try:
-            if cv2.waitKey(25) & 0xFF == ord('q') or data[:, 4][max_index] > 200000:
+            if cv2.waitKey(25) & 0xFF == ord('q') or data[:, 4][max_index] > 80000:
                 GPIO.cleanup()
                 stop_last = 1
                 
@@ -237,9 +271,11 @@ def main():
     # 出力する動画ファイルの設定
     fourcc = cv2.VideoWriter_fourcc(*'H264')
     video = cv2.VideoWriter('VIDEO.avi', fourcc, fps, size)
-    with open('area.csv', 'w') as fcap:
+    with open('area.csv', 'w') as fcap, open('hcsr04.csv', 'w') as fh: 
         area = csv.writer(fcap)
         area.writerow(['area','center'])
+        hcsr04 = csv.writer(fh)
+        hcsr04.writerow(['distance'])
         while(cap.isOpened()):
             # フレームを取得
             cap.set(cv2.CAP_PROP_BUFFERSIZE, 1)
@@ -268,8 +304,11 @@ def main():
 
 
                 print("menseki",data[:, 4][max_index])
+                print("distance",reading(0))
                 area_row = [data[:, 4][max_index],center_x]
                 area.writerow(area_row)
+                distance_row = [reading(0)]
+                hcsr04.writerow(distance_row)
                 #print("menseki",data[:, 4][max_index])
                 #print(center[max_index][0])
              
@@ -303,7 +342,7 @@ def motor_processing():
                     dim2nd = dimensions[1]
             # 2次元目の要素数5以上ならdata[:,4]の2次元目のindex=4の条件を満たす
                     if dim2nd >= 5:
-                        if  150 <= center[max_index][0] and center[max_index][0] < 540 and  50 < data[:, 4][max_index] and data[:, 4][max_index] <= 200000:
+                        if  150 <= center[max_index][0] and center[max_index][0] < 540 and  50 < data[:, 4][max_index] and data[:, 4][max_index] <= 80000:
                 #まっすぐ進み動作(物体が中心近くにいる際)
                             forward()
                             time.sleep(3)
@@ -319,21 +358,21 @@ def motor_processing():
                             time.sleep(2)
                             time.sleep(2)
                             
-                        elif center[max_index][0] < 150 and  50 < data[:, 4][max_index] and data[:, 4][max_index] <= 200000:
+                        elif center[max_index][0] < 150 and  50 < data[:, 4][max_index] and data[:, 4][max_index] <= 80000:
                     #回転する動作(物体がカメラの中心から左にずれている際)
                             CCW()
                             time.sleep(0.2)
                             stop()
                             time.sleep(1)
         
-                        elif center[max_index][0] >= 540 and  50 < data[:, 4][max_index] and data[:, 4][max_index] <= 200000:
+                        elif center[max_index][0] >= 540 and  50 < data[:, 4][max_index] and data[:, 4][max_index] <= 80000:
                     #回転する動作（物体がカメラの中心から右にずれている際）
                             CW()
                             time.sleep(0.2)
                             stop()
                             time.sleep(1)
 
-                        elif data[:, 4][max_index] > 200000:
+                        elif data[:, 4][max_index] > 80000:
                     #止まる(物体の近くに接近した際)
                             stop()
                             GPIO.cleanup()
@@ -354,6 +393,7 @@ if __name__ == "__main__":
     thread_camera_stop = threading.Thread(target=camera_stop)
     thread_main.start()
     time.sleep(3)
+    time.sleep(1)
     thread_losting.start()
     thread_motor_processing.start()
     thread_camera_stop.start()
