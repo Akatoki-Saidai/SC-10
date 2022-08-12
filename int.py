@@ -366,5 +366,6 @@ with open('bno_data1.csv', 'w') as fbno1, open('bno_data2.csv','w') as fbno2, op
                 phase += 1
 	
         if phase == 3:
-            subprocess.run(['python' , 'e2e_improved.py'])          
+            subprocess.run(['python' , 'e2e_improved.py'])       
+	    #time.sleep(sqrt(2h/g))でi'm falling を表示させる時間をかせぐ
             break
